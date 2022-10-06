@@ -4,7 +4,7 @@ import Browser
 import Html exposing (Html)
 import Html.Attributes exposing (class)
 import List.Extra as List
-import Material.Tab as Tab
+import Material.Tab as Tab exposing (Tab)
 import Material.TabBar as TabBar
 
 
@@ -28,18 +28,18 @@ update msg model =
             ( { model | selectedTab = selectedTab }, Cmd.none )
 
 
-type alias Tab =
+type alias TabData =
     { text : String
     , icon : String
     }
 
 
-firstTab : Tab
+firstTab : TabData
 firstTab =
     { text = "Find", icon = "search" }
 
 
-remainingTabs : List Tab
+remainingTabs : List TabData
 remainingTabs =
     [ { text = "Listen", icon = "headphones" }
     , { text = "Review", icon = "grading" }
@@ -50,7 +50,7 @@ remainingTabs =
 view : Model -> Html Msg
 view model =
     Html.div []
-        [ Html.div [ class "fixed w-full" ] [ viewBar model ]
+        [ Html.div [ class "fixed w-full" ] [ viewTabs model ]
         , Html.div [ class "pt-20 px-3" ]
             [ (firstTab :: remainingTabs)
                 |> List.getAt model.selectedTab
@@ -61,27 +61,21 @@ view model =
         ]
 
 
-viewBar : Model -> Html Msg
-viewBar model =
+viewTabs : Model -> Html Msg
+viewTabs model =
     TabBar.tabBar (TabBar.config |> TabBar.setStacked True)
-        (Tab.tab
-            (Tab.config
-                |> Tab.setActive (model.selectedTab == 0)
-                |> Tab.setOnClick (TabClicked 0)
-            )
-            { label = firstTab.text, icon = Just (Tab.icon firstTab.icon) }
+        (viewTab model 0 firstTab)
+        (List.indexedMap (\i tab -> viewTab model (i + 1) tab) remainingTabs)
+
+
+viewTab : Model -> Int -> TabData -> Tab Msg
+viewTab model index tab =
+    Tab.tab
+        (Tab.config
+            |> Tab.setActive (model.selectedTab == index)
+            |> Tab.setOnClick (TabClicked index)
         )
-        (List.indexedMap
-            (\index tab ->
-                Tab.tab
-                    (Tab.config
-                        |> Tab.setActive (model.selectedTab == index + 1)
-                        |> Tab.setOnClick (TabClicked (index + 1))
-                    )
-                    { label = tab.text, icon = Just (Tab.icon tab.icon) }
-            )
-            remainingTabs
-        )
+        { label = tab.text, icon = Just (Tab.icon tab.icon) }
 
 
 subscriptions : Model -> Sub Msg
