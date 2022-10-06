@@ -12,6 +12,7 @@
     <div id="player"></div>
     <script>
       const INTERVAL_TIME = 100;
+      const SKIP_TIME = 5;
       
       let player;
       let isPlaying = false;
@@ -31,6 +32,10 @@
       
       app.ports.pauseVideo.subscribe(pauseVideo);
       
+      app.ports.fastForward.subscribe(fastForward);
+      
+      app.ports.fastRewind.subscribe(fastRewind);
+      
       function playVideo() {
         if (!player) return;
         player.playVideo();
@@ -46,6 +51,23 @@
         isPlaying = false;
         clearInterval(intervalId);
         intervalId = null;
+      }
+      
+      function fastForward() {
+        if (!player) return;
+        const newPlayerTime = Math.min(
+          player.getDuration() || 0,
+          (player.getCurrentTime() || 0) + SKIP_TIME
+        );
+        player.seekTo(newPlayerTime);
+        app.ports.currentVideoTime.send(newPlayerTime);
+      }
+      
+      function fastRewind() {
+        if (!player) return;
+        const newPlayerTime = Math.max(0, (player.getCurrentTime() || 0) - SKIP_TIME);
+        player.seekTo(newPlayerTime);
+        app.ports.currentVideoTime.send(newPlayerTime);
       }
       
       function getCurrentVideoTime() {
