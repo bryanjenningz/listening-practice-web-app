@@ -62,6 +62,18 @@ remainingTabs =
                                     |> Button.setHref (Just ("https://youtube.com/watch?v=" ++ videoId))
                                 )
                                 "Go to video"
+                            , Button.raised
+                                (Button.config
+                                    |> Button.setIcon (Just (Button.icon "play_arrow"))
+                                    |> Button.setOnClick PlayVideo
+                                )
+                                "Play video"
+                            , Button.raised
+                                (Button.config
+                                    |> Button.setIcon (Just (Button.icon "pause"))
+                                    |> Button.setOnClick PauseVideo
+                                )
+                                "Pause video"
                             ]
       }
     , { text = "Review"
@@ -113,6 +125,8 @@ init () =
 type Msg
     = TabClicked Int
     | ListenToVideo String
+    | PlayVideo
+    | PauseVideo
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -128,6 +142,12 @@ update msg model =
               }
             , startVideo videoId
             )
+
+        PlayVideo ->
+            ( model, playVideo () )
+
+        PauseVideo ->
+            ( model, pauseVideo () )
 
 
 view : Model -> Html Msg
@@ -191,6 +211,12 @@ subscriptions model =
 
 
 port startVideo : String -> Cmd msg
+
+
+port playVideo : () -> Cmd msg
+
+
+port pauseVideo : () -> Cmd msg
 
 
 main : Program () Model Msg
