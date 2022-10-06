@@ -17,6 +17,10 @@
         player.loadVideoById(videoId);
         player.playVideo();
       });
+      
+      app.ports.playVideo.subscribe(() => player.playVideo());
+      
+      app.ports.pauseVideo.subscribe(() => player.pauseVideo());
 
       const tag = document.createElement("script");
       tag.src = "https://www.youtube.com/iframe_api";
