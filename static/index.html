@@ -11,33 +11,66 @@
     <main></main>
     <div id="player"></div>
     <script>
+      const INTERVAL_TIME = 100;
+      
+      let player;
+      let isPlaying = false;
+      let intervalId = null;
+      
+      initVideo();
+      
       const app = Elm.Main.init({ node: document.querySelector("main") });
       
       app.ports.startVideo.subscribe(videoId => {
+        if (!player) return;
         player.loadVideoById(videoId);
-        player.playVideo();
+        playVideo();
       });
       
-      app.ports.playVideo.subscribe(() => player.playVideo());
+      app.ports.playVideo.subscribe(playVideo);
       
-      app.ports.pauseVideo.subscribe(() => player.pauseVideo());
+      app.ports.pauseVideo.subscribe(pauseVideo);
+      
+      function playVideo() {
+        if (!player) return;
+        player.playVideo();
+        isPlaying = true;
+        if (!intervalId) {
+          intervalId = setInterval(getCurrentVideoTime, INTERVAL_TIME);
+        }
+      }
+      
+      function pauseVideo() {
+        if (!player) return;
+        player.pauseVideo();
+        isPlaying = false;
+        clearInterval(intervalId);
+        intervalId = null;
+      }
+      
+      function getCurrentVideoTime() {
+        if (!player) return;
+        app.ports.currentVideoTime.send(player.getCurrentTime());
+      }
 
-      const tag = document.createElement("script");
-      tag.src = "https://www.youtube.com/iframe_api";
-      const firstScriptTag = document.getElementsByTagName("script")[0];
-      firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+      function initVideo() {
+        const tag = document.createElement("script");
+        tag.src = "https://www.youtube.com/iframe_api";
+        const firstScriptTag = document.getElementsByTagName("script")[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
       
-      let player;
-      window.onYouTubeIframeAPIReady = () => {
-        player = new YT.Player("player", {
-          height: 1,
-          width: 1,
-          videoId: "UwRZ8TY2Z4k",
-          playerVars: {
-            playsinline: 1
-          }
-        });
-      };
+        window.onYouTubeIframeAPIReady = () => {
+          player = new YT.Player("player", {
+            height: 1,
+            width: 1,
+            videoId: "UwRZ8TY2Z4k",
+            playerVars: {
+              playsinline: 1
+            }
+          });
+          window.player = player;
+        };
+      }
     </script>
   </body>
 </html>
