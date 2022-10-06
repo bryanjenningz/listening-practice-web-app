@@ -50,7 +50,7 @@
       
       function getCurrentVideoTime() {
         if (!player) return;
-        app.ports.currentVideoTime.send(player.getCurrentTime());
+        app.ports.currentVideoTime.send(player.getCurrentTime() || 0);
       }
 
       function initVideo() {
