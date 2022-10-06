@@ -9,8 +9,31 @@
   </head>
   <body>
     <main></main>
+    <div id="player"></div>
     <script>
-      const app = Elm.Main.init({ node: document.querySelector('main') });
+      const app = Elm.Main.init({ node: document.querySelector("main") });
+      
+      app.ports.startVideo.subscribe(videoId => {
+        player.loadVideoById(videoId);
+        player.playVideo();
+      });
+
+      const tag = document.createElement("script");
+      tag.src = "https://www.youtube.com/iframe_api";
+      const firstScriptTag = document.getElementsByTagName("script")[0];
+      firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+      
+      let player;
+      window.onYouTubeIframeAPIReady = () => {
+        player = new YT.Player("player", {
+          height: 1,
+          width: 1,
+          videoId: "UwRZ8TY2Z4k",
+          playerVars: {
+            playsinline: 1
+          }
+        });
+      };
     </script>
   </body>
 </html>
