@@ -1,4 +1,4 @@
-module Main exposing (main)
+port module Main exposing (main)
 
 import Browser
 import Html exposing (Html)
@@ -126,7 +126,7 @@ update msg model =
                 | selectedTab = listenTabIndex
                 , selectedVideo = Just videoId
               }
-            , Cmd.none
+            , startVideo videoId
             )
 
 
@@ -188,6 +188,9 @@ viewVideoCard video =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.none
+
+
+port startVideo : String -> Cmd msg
 
 
 main : Program () Model Msg
