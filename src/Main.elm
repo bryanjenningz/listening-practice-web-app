@@ -62,18 +62,21 @@ remainingTabs =
                                     |> Button.setHref (Just ("https://youtube.com/watch?v=" ++ videoId))
                                 )
                                 "Go to video"
-                            , Button.raised
-                                (Button.config
-                                    |> Button.setIcon (Just (Button.icon "play_arrow"))
-                                    |> Button.setOnClick PlayVideo
-                                )
-                                "Play video"
-                            , Button.raised
-                                (Button.config
-                                    |> Button.setIcon (Just (Button.icon "pause"))
-                                    |> Button.setOnClick PauseVideo
-                                )
-                                "Pause video"
+                            , if model.isPlaying then
+                                Button.raised
+                                    (Button.config
+                                        |> Button.setIcon (Just (Button.icon "pause"))
+                                        |> Button.setOnClick PauseVideo
+                                    )
+                                    "Pause video"
+
+                              else
+                                Button.raised
+                                    (Button.config
+                                        |> Button.setIcon (Just (Button.icon "play_arrow"))
+                                        |> Button.setOnClick PlayVideo
+                                    )
+                                    "Play video"
                             ]
       }
     , { text = "Review"
@@ -110,6 +113,7 @@ videos =
 type alias Model =
     { selectedTab : Int
     , selectedVideo : Maybe String
+    , isPlaying : Bool
     }
 
 
@@ -117,6 +121,7 @@ init : () -> ( Model, Cmd Msg )
 init () =
     ( { selectedTab = 0
       , selectedVideo = Nothing
+      , isPlaying = False
       }
     , Cmd.none
     )
@@ -139,15 +144,16 @@ update msg model =
             ( { model
                 | selectedTab = listenTabIndex
                 , selectedVideo = Just videoId
+                , isPlaying = True
               }
             , startVideo videoId
             )
 
         PlayVideo ->
-            ( model, playVideo () )
+            ( { model | isPlaying = True }, playVideo () )
 
         PauseVideo ->
-            ( model, pauseVideo () )
+            ( { model | isPlaying = False }, pauseVideo () )
 
 
 view : Model -> Html Msg
