@@ -17,6 +17,11 @@ type alias TabData =
     }
 
 
+findTabIndex : Int
+findTabIndex =
+    0
+
+
 listenTabIndex : Int
 listenTabIndex =
     1
@@ -36,14 +41,21 @@ remainingTabs =
       , icon = "headphones"
       , content =
             \model ->
-                Html.text
-                    (case model.selectedVideo of
-                        Nothing ->
-                            "No video selected"
+                case model.selectedVideo of
+                    Nothing ->
+                        Html.div [ class "flex flex-col items-center" ]
+                            [ Html.div [ class "mb-2 text-xl" ] [ Html.text "No video selected" ]
+                            , Button.raised
+                                (Button.config
+                                    |> Button.setIcon (Just (Button.icon "search"))
+                                    |> Button.setOnClick (TabClicked findTabIndex)
+                                )
+                                "Find a video"
+                            ]
 
-                        Just videoId ->
-                            "Video ID: " ++ videoId
-                    )
+                    Just videoId ->
+                        Html.div [ class "text-center" ]
+                            [ Html.text ("Video ID: " ++ videoId) ]
       }
     , { text = "Review"
       , icon = "grading"
@@ -115,7 +127,7 @@ view : Model -> Html Msg
 view model =
     Html.div []
         [ Html.div [ class "fixed w-full" ] [ viewTabs model ]
-        , Html.div [ class "pt-20 px-3" ]
+        , Html.div [ class "pt-24 px-3" ]
             [ (firstTab :: remainingTabs)
                 |> List.getAt model.selectedTab
                 |> Maybe.withDefault firstTab
