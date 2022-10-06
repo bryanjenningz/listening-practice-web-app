@@ -7,6 +7,7 @@ import List.Extra as List
 import Material.Button as Button
 import Material.Card as Card
 import Material.Fab as Fab
+import Material.IconButton as IconButton
 import Material.Slider as Slider
 import Material.Tab as Tab exposing (Tab)
 import Material.TabBar as TabBar
@@ -35,7 +36,7 @@ firstTab : TabData
 firstTab =
     { text = "Find"
     , icon = "search"
-    , content = \_ -> Html.div [] (List.map viewVideoCard videos)
+    , content = \model -> Html.div [] (List.map (viewVideoCard model) videos)
     }
 
 
@@ -256,8 +257,8 @@ viewTab model index tab =
         { label = tab.text, icon = Just (Tab.icon tab.icon) }
 
 
-viewVideoCard : VideoData -> Html Msg
-viewVideoCard video =
+viewVideoCard : Model -> VideoData -> Html Msg
+viewVideoCard model video =
     Card.card (Card.config |> Card.setAttributes [ class "px-4 pt-4 mb-4" ])
         { blocks =
             ( Card.block <|
@@ -276,7 +277,26 @@ viewVideoCard video =
                             )
                             "Listen"
                         ]
-                    , icons = []
+                    , icons =
+                        if model.selectedVideo == Just video then
+                            if model.isPlaying then
+                                [ Card.icon
+                                    (IconButton.config
+                                        |> IconButton.setOnClick PauseVideo
+                                    )
+                                    (IconButton.icon "pause")
+                                ]
+
+                            else
+                                [ Card.icon
+                                    (IconButton.config
+                                        |> IconButton.setOnClick PlayVideo
+                                    )
+                                    (IconButton.icon "play_arrow")
+                                ]
+
+                        else
+                            []
                     }
         }
 
