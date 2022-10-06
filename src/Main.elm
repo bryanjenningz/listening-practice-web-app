@@ -56,13 +56,12 @@ remainingTabs =
 
                     Just videoId ->
                         Html.div [ class "flex flex-col items-center" ]
-                            [ Html.div [ class "mb-2 text-xl" ] [ Html.text ("Video ID: " ++ videoId) ]
-                            , Button.raised
-                                (Button.config
-                                    |> Button.setIcon (Just (Button.icon "link"))
-                                    |> Button.setHref (Just ("https://youtube.com/watch?v=" ++ videoId))
-                                )
-                                "Go to video"
+                            [ Html.div [ class "mb-2 text-xl text-center" ]
+                                [ List.find (.id >> (==) videoId) videos
+                                    |> Maybe.map .title
+                                    |> Maybe.withDefault ""
+                                    |> Html.text
+                                ]
                             , Html.div [] [ Html.text (formatTime model.videoTime) ]
                             , if model.isPlaying then
                                 Button.raised
