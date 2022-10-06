@@ -205,7 +205,11 @@ update msg model =
                 , selectedVideo = Just video
                 , isPlaying = True
               }
-            , startVideo video.id
+            , if Just video == model.selectedVideo then
+                playVideo ()
+
+              else
+                startVideo video.id
             )
 
         PlayVideo ->
