@@ -2,11 +2,12 @@ port module Main exposing (main)
 
 import Browser
 import Html exposing (Html)
-import Html.Attributes exposing (class)
+import Html.Attributes exposing (class, style)
 import List.Extra as List
 import Material.Button as Button
 import Material.Card as Card
 import Material.Fab as Fab
+import Material.Slider as Slider
 import Material.Tab as Tab exposing (Tab)
 import Material.TabBar as TabBar
 import Material.Theme as Theme
@@ -60,6 +61,17 @@ remainingTabs =
                         Html.div [ class "flex flex-col items-center gap-2" ]
                             [ Html.div [ class "text-xl text-center" ]
                                 [ Html.text video.title ]
+                            , Html.div [ class "w-full" ]
+                                [ Slider.slider
+                                    (Slider.config
+                                        |> Slider.setMin 0
+                                        |> Slider.setMax video.duration
+                                        |> Slider.setOnInput SetVideoTime
+                                        |> Slider.setValue (toFloat (round model.videoTime))
+                                        |> Slider.setStep 1
+                                        |> Slider.setAttributes [ style "margin" "0" ]
+                                    )
+                                ]
                             , Html.div []
                                 [ Html.text
                                     (formatTime model.videoTime
@@ -176,7 +188,8 @@ type Msg
     | PauseVideo
     | FastForward
     | FastRewind
-    | SetCurrentVideoTime Float
+    | GetVideoTime Float
+    | SetVideoTime Float
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -206,8 +219,11 @@ update msg model =
         FastRewind ->
             ( model, fastRewind () )
 
-        SetCurrentVideoTime videoTime ->
+        GetVideoTime videoTime ->
             ( { model | videoTime = videoTime }, Cmd.none )
+
+        SetVideoTime videoTime ->
+            ( model, setVideoTime videoTime )
 
 
 view : Model -> Html Msg
@@ -267,7 +283,7 @@ viewVideoCard video =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    currentVideoTime SetCurrentVideoTime
+    getVideoTime GetVideoTime
 
 
 port startVideo : String -> Cmd msg
@@ -285,7 +301,10 @@ port fastForward : () -> Cmd msg
 port fastRewind : () -> Cmd msg
 
 
-port currentVideoTime : (Float -> msg) -> Sub msg
+port getVideoTime : (Float -> msg) -> Sub msg
+
+
+port setVideoTime : Float -> Cmd msg
 
 
 main : Program () Model Msg
