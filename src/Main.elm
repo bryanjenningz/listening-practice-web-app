@@ -8,6 +8,7 @@ import Material.Button as Button
 import Material.Card as Card
 import Material.Tab as Tab exposing (Tab)
 import Material.TabBar as TabBar
+import Time
 
 
 type alias TabData =
@@ -62,6 +63,7 @@ remainingTabs =
                                     |> Button.setHref (Just ("https://youtube.com/watch?v=" ++ videoId))
                                 )
                                 "Go to video"
+                            , Html.div [] [ Html.text (formatTime model.videoTime) ]
                             , if model.isPlaying then
                                 Button.raised
                                     (Button.config
@@ -90,6 +92,23 @@ remainingTabs =
     ]
 
 
+formatTime : Float -> String
+formatTime totalSeconds =
+    let
+        seconds =
+            floor totalSeconds |> modBy 60
+
+        minutes =
+            (floor totalSeconds // 60) |> modBy 60
+
+        hours =
+            floor totalSeconds // 60 // 60
+    in
+    [ hours, minutes, seconds ]
+        |> List.map (String.fromInt >> String.padLeft 2 '0' >> String.right 2)
+        |> String.join ":"
+
+
 type alias VideoData =
     { id : String
     , title : String
@@ -114,6 +133,7 @@ type alias Model =
     { selectedTab : Int
     , selectedVideo : Maybe String
     , isPlaying : Bool
+    , videoTime : Float
     }
 
 
@@ -122,6 +142,7 @@ init () =
     ( { selectedTab = 0
       , selectedVideo = Nothing
       , isPlaying = False
+      , videoTime = 0
       }
     , Cmd.none
     )
@@ -132,6 +153,7 @@ type Msg
     | ListenToVideo String
     | PlayVideo
     | PauseVideo
+    | SetCurrentVideoTime Float
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -154,6 +176,9 @@ update msg model =
 
         PauseVideo ->
             ( { model | isPlaying = False }, pauseVideo () )
+
+        SetCurrentVideoTime videoTime ->
+            ( { model | videoTime = videoTime }, Cmd.none )
 
 
 view : Model -> Html Msg
@@ -213,7 +238,7 @@ viewVideoCard video =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.none
+    currentVideoTime SetCurrentVideoTime
 
 
 port startVideo : String -> Cmd msg
@@ -223,6 +248,9 @@ port playVideo : () -> Cmd msg
 
 
 port pauseVideo : () -> Cmd msg
+
+
+port currentVideoTime : (Float -> msg) -> Sub msg
 
 
 main : Program () Model Msg
