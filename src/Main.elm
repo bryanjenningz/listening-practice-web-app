@@ -54,15 +54,17 @@ remainingTabs =
                                 "Find a video"
                             ]
 
-                    Just videoId ->
+                    Just video ->
                         Html.div [ class "flex flex-col items-center" ]
                             [ Html.div [ class "mb-2 text-xl text-center" ]
-                                [ List.find (.id >> (==) videoId) videos
-                                    |> Maybe.map .title
-                                    |> Maybe.withDefault ""
-                                    |> Html.text
+                                [ Html.text video.title ]
+                            , Html.div []
+                                [ Html.text
+                                    (formatTime model.videoTime
+                                        ++ " / "
+                                        ++ formatTime video.duration
+                                    )
                                 ]
-                            , Html.div [] [ Html.text (formatTime model.videoTime) ]
                             , if model.isPlaying then
                                 Button.raised
                                     (Button.config
@@ -111,6 +113,7 @@ formatTime totalSeconds =
 type alias VideoData =
     { id : String
     , title : String
+    , duration : Float
     }
 
 
@@ -118,19 +121,22 @@ videos : List VideoData
 videos =
     [ { id = "UwRZ8TY2Z4k"
       , title = "It's too hot this summer! Talk about our environment 今年夏天也太热了吧聊聊环保"
+      , duration = 884.301
       }
     , { id = "jKPlNHHYKZo"
       , title = "Difference between giving Chinese and English names 中英文起名字的区别"
+      , duration = 2138.561
       }
     , { id = "8FKWqzd5jjs"
       , title = "Talk about insomnia 失眠和晚睡强迫症"
+      , duration = 1391.061
       }
     ]
 
 
 type alias Model =
     { selectedTab : Int
-    , selectedVideo : Maybe String
+    , selectedVideo : Maybe VideoData
     , isPlaying : Bool
     , videoTime : Float
     }
@@ -149,7 +155,7 @@ init () =
 
 type Msg
     = TabClicked Int
-    | ListenToVideo String
+    | ListenToVideo VideoData
     | PlayVideo
     | PauseVideo
     | SetCurrentVideoTime Float
@@ -161,13 +167,13 @@ update msg model =
         TabClicked selectedTab ->
             ( { model | selectedTab = selectedTab }, Cmd.none )
 
-        ListenToVideo videoId ->
+        ListenToVideo video ->
             ( { model
                 | selectedTab = listenTabIndex
-                , selectedVideo = Just videoId
+                , selectedVideo = Just video
                 , isPlaying = True
               }
-            , startVideo videoId
+            , startVideo video.id
             )
 
         PlayVideo ->
@@ -226,7 +232,7 @@ viewVideoCard video =
                     { buttons =
                         [ Card.button
                             (Button.config
-                                |> Button.setOnClick (ListenToVideo video.id)
+                                |> Button.setOnClick (ListenToVideo video)
                             )
                             "Listen"
                         ]
