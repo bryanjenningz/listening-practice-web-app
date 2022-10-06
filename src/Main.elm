@@ -6,8 +6,10 @@ import Html.Attributes exposing (class)
 import List.Extra as List
 import Material.Button as Button
 import Material.Card as Card
+import Material.Fab as Fab
 import Material.Tab as Tab exposing (Tab)
 import Material.TabBar as TabBar
+import Material.Theme as Theme
 import Time
 
 
@@ -55,8 +57,8 @@ remainingTabs =
                             ]
 
                     Just video ->
-                        Html.div [ class "flex flex-col items-center" ]
-                            [ Html.div [ class "mb-2 text-xl text-center" ]
+                        Html.div [ class "flex flex-col items-center gap-2" ]
+                            [ Html.div [ class "text-xl text-center" ]
                                 [ Html.text video.title ]
                             , Html.div []
                                 [ Html.text
@@ -65,21 +67,35 @@ remainingTabs =
                                         ++ formatTime video.duration
                                     )
                                 ]
-                            , if model.isPlaying then
-                                Button.raised
-                                    (Button.config
-                                        |> Button.setIcon (Just (Button.icon "pause"))
-                                        |> Button.setOnClick PauseVideo
+                            , Html.div [ class "flex gap-2" ]
+                                [ Fab.fab
+                                    (Fab.config
+                                        |> Fab.setOnClick FastRewind
+                                        |> Fab.setAttributes [ Theme.primaryBg ]
                                     )
-                                    "Pause video"
+                                    (Fab.icon "fast_rewind")
+                                , if model.isPlaying then
+                                    Fab.fab
+                                        (Fab.config
+                                            |> Fab.setOnClick PauseVideo
+                                            |> Fab.setAttributes [ Theme.primaryBg ]
+                                        )
+                                        (Fab.icon "pause")
 
-                              else
-                                Button.raised
-                                    (Button.config
-                                        |> Button.setIcon (Just (Button.icon "play_arrow"))
-                                        |> Button.setOnClick PlayVideo
+                                  else
+                                    Fab.fab
+                                        (Fab.config
+                                            |> Fab.setOnClick PlayVideo
+                                            |> Fab.setAttributes [ Theme.primaryBg ]
+                                        )
+                                        (Fab.icon "play_arrow")
+                                , Fab.fab
+                                    (Fab.config
+                                        |> Fab.setOnClick FastForward
+                                        |> Fab.setAttributes [ Theme.primaryBg ]
                                     )
-                                    "Play video"
+                                    (Fab.icon "fast_forward")
+                                ]
                             ]
       }
     , { text = "Review"
@@ -158,6 +174,8 @@ type Msg
     | ListenToVideo VideoData
     | PlayVideo
     | PauseVideo
+    | FastForward
+    | FastRewind
     | SetCurrentVideoTime Float
 
 
@@ -181,6 +199,12 @@ update msg model =
 
         PauseVideo ->
             ( { model | isPlaying = False }, pauseVideo () )
+
+        FastForward ->
+            ( model, fastForward () )
+
+        FastRewind ->
+            ( model, fastRewind () )
 
         SetCurrentVideoTime videoTime ->
             ( { model | videoTime = videoTime }, Cmd.none )
@@ -253,6 +277,12 @@ port playVideo : () -> Cmd msg
 
 
 port pauseVideo : () -> Cmd msg
+
+
+port fastForward : () -> Cmd msg
+
+
+port fastRewind : () -> Cmd msg
 
 
 port currentVideoTime : (Float -> msg) -> Sub msg
