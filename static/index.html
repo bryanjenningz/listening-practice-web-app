@@ -23,7 +23,7 @@
       const app = Elm.Main.init({ node: document.querySelector("main") });
       
       app.ports.startVideo.subscribe(videoId => {
-        if (!player) return;
+        if (!player || !player.loadVideoById) return;
         player.loadVideoById(videoId);
         playVideo();
       });
@@ -36,12 +36,14 @@
       
       app.ports.fastRewind.subscribe(fastRewind);
       
+      app.ports.setVideoTime.subscribe(setVideoTime);
+      
       function playVideo() {
         if (!player) return;
         player.playVideo();
         isPlaying = true;
         if (!intervalId) {
-          intervalId = setInterval(getCurrentVideoTime, INTERVAL_TIME);
+          intervalId = setInterval(getVideoTime, INTERVAL_TIME);
         }
       }
       
@@ -60,19 +62,25 @@
           (player.getCurrentTime() || 0) + SKIP_TIME
         );
         player.seekTo(newPlayerTime);
-        app.ports.currentVideoTime.send(newPlayerTime);
+        app.ports.getVideoTime.send(newPlayerTime);
       }
       
       function fastRewind() {
         if (!player) return;
         const newPlayerTime = Math.max(0, (player.getCurrentTime() || 0) - SKIP_TIME);
         player.seekTo(newPlayerTime);
-        app.ports.currentVideoTime.send(newPlayerTime);
+        app.ports.getVideoTime.send(newPlayerTime);
       }
       
-      function getCurrentVideoTime() {
+      function getVideoTime() {
         if (!player) return;
-        app.ports.currentVideoTime.send(player.getCurrentTime() || 0);
+        app.ports.getVideoTime.send(player.getCurrentTime() || 0);
+      }
+      
+      function setVideoTime(videoTime) {
+        if (!player) return;
+        player.seekTo(videoTime);
+        app.ports.getVideoTime.send(videoTime);
       }
 
       function initVideo() {
