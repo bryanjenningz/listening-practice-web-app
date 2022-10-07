@@ -35,7 +35,7 @@ firstTab : TabData
 firstTab =
     { text = "Find"
     , icon = "search"
-    , content = \model -> Html.div [] (List.map (viewVideoCard model) videos)
+    , content = viewFindTab
     }
 
 
@@ -43,118 +43,129 @@ remainingTabs : List TabData
 remainingTabs =
     [ { text = "Listen"
       , icon = "headphones"
-      , content =
-            \model ->
-                case model.selectedVideo of
-                    Nothing ->
-                        Html.div [ class "flex flex-col items-center" ]
-                            [ Html.div [ class "mb-2 text-xl" ] [ Html.text "No video selected" ]
-                            , Button.raised
-                                (Button.config
-                                    |> Button.setIcon (Just (Button.icon "search"))
-                                    |> Button.setOnClick (TabClicked findTabIndex)
-                                )
-                                "Find a video"
-                            ]
-
-                    Just video ->
-                        Html.div [ class "flex flex-col items-center gap-2" ]
-                            [ Html.div [ class "text-xl text-center" ]
-                                [ Html.text video.title ]
-                            , Html.div [ class "w-full" ]
-                                [ Slider.slider
-                                    (Slider.config
-                                        |> Slider.setMin 0
-                                        |> Slider.setMax video.duration
-                                        |> Slider.setOnInput SetVideoTime
-                                        |> Slider.setValue (toFloat (round model.videoTime))
-                                        |> Slider.setStep 1
-                                        |> Slider.setAttributes [ style "margin" "0" ]
-                                    )
-                                ]
-                            , Html.div []
-                                [ Html.text
-                                    (formatTime model.videoTime
-                                        ++ " / "
-                                        ++ formatTime video.duration
-                                    )
-                                ]
-                            , Html.div [ class "flex gap-2" ]
-                                [ Fab.fab
-                                    (Fab.config
-                                        |> Fab.setOnClick FastRewind
-                                        |> Fab.setAttributes [ Theme.primaryBg ]
-                                    )
-                                    (Fab.icon "fast_rewind")
-                                , if model.isPlaying then
-                                    Fab.fab
-                                        (Fab.config
-                                            |> Fab.setOnClick PauseVideo
-                                            |> Fab.setAttributes [ Theme.primaryBg ]
-                                        )
-                                        (Fab.icon "pause")
-
-                                  else
-                                    Fab.fab
-                                        (Fab.config
-                                            |> Fab.setOnClick PlayVideo
-                                            |> Fab.setAttributes [ Theme.primaryBg ]
-                                        )
-                                        (Fab.icon "play_arrow")
-                                , Fab.fab
-                                    (Fab.config
-                                        |> Fab.setOnClick FastForward
-                                        |> Fab.setAttributes [ Theme.primaryBg ]
-                                    )
-                                    (Fab.icon "fast_forward")
-                                ]
-                            , Html.div []
-                                [ Button.raised
-                                    (Button.config
-                                        |> Button.setIcon (Just (Button.icon "save"))
-                                        |> Button.setOnClick SaveRecording
-                                    )
-                                    "Save recording"
-                                ]
-                            ]
+      , content = viewListenTab
       }
     , { text = "Review"
       , icon = "grading"
-      , content =
-            \model ->
-                if List.isEmpty model.recordings then
-                    Html.div [ class "text-center text-xl" ] [ Html.text "No recordings saved yet" ]
-
-                else
-                    Html.div []
-                        (List.map
-                            (\recording ->
-                                Html.div []
-                                    [ Html.div [] [ Html.text recording.video.title ]
-                                    , Html.div [] [ Html.text (formatTime recording.time) ]
-                                    , Html.div []
-                                        [ if Just recording.video == model.selectedVideo then
-                                            Button.raised
-                                                (Button.config
-                                                    |> Button.setIcon (Just (Button.icon "play_arrow"))
-                                                    |> Button.setOnClick (PlayRecording recording)
-                                                )
-                                                "Play recording"
-
-                                          else
-                                            Button.raised
-                                                (Button.config
-                                                    |> Button.setIcon (Just (Button.icon "sync"))
-                                                    |> Button.setOnClick (LoadVideo recording.video)
-                                                )
-                                                "Load video"
-                                        ]
-                                    ]
-                            )
-                            model.recordings
-                        )
+      , content = viewReviewTab
       }
     ]
+
+
+viewFindTab : Model -> Html Msg
+viewFindTab model =
+    Html.div [] (List.map (viewVideoCard model) videos)
+
+
+viewListenTab : Model -> Html Msg
+viewListenTab model =
+    case model.selectedVideo of
+        Nothing ->
+            Html.div [ class "flex flex-col items-center" ]
+                [ Html.div [ class "mb-2 text-xl" ] [ Html.text "No video selected" ]
+                , Button.raised
+                    (Button.config
+                        |> Button.setIcon (Just (Button.icon "search"))
+                        |> Button.setOnClick (TabClicked findTabIndex)
+                    )
+                    "Find a video"
+                ]
+
+        Just video ->
+            Html.div [ class "flex flex-col items-center gap-2" ]
+                [ Html.div [ class "text-xl text-center" ]
+                    [ Html.text video.title ]
+                , Html.div [ class "w-full" ]
+                    [ Slider.slider
+                        (Slider.config
+                            |> Slider.setMin 0
+                            |> Slider.setMax video.duration
+                            |> Slider.setOnInput SetVideoTime
+                            |> Slider.setValue (toFloat (round model.videoTime))
+                            |> Slider.setStep 1
+                            |> Slider.setAttributes [ style "margin" "0" ]
+                        )
+                    ]
+                , Html.div []
+                    [ Html.text
+                        (formatTime model.videoTime
+                            ++ " / "
+                            ++ formatTime video.duration
+                        )
+                    ]
+                , Html.div [ class "flex gap-2" ]
+                    [ Fab.fab
+                        (Fab.config
+                            |> Fab.setOnClick FastRewind
+                            |> Fab.setAttributes [ Theme.primaryBg ]
+                        )
+                        (Fab.icon "fast_rewind")
+                    , if model.isPlaying then
+                        Fab.fab
+                            (Fab.config
+                                |> Fab.setOnClick PauseVideo
+                                |> Fab.setAttributes [ Theme.primaryBg ]
+                            )
+                            (Fab.icon "pause")
+
+                      else
+                        Fab.fab
+                            (Fab.config
+                                |> Fab.setOnClick PlayVideo
+                                |> Fab.setAttributes [ Theme.primaryBg ]
+                            )
+                            (Fab.icon "play_arrow")
+                    , Fab.fab
+                        (Fab.config
+                            |> Fab.setOnClick FastForward
+                            |> Fab.setAttributes [ Theme.primaryBg ]
+                        )
+                        (Fab.icon "fast_forward")
+                    ]
+                , Html.div []
+                    [ Button.raised
+                        (Button.config
+                            |> Button.setIcon (Just (Button.icon "save"))
+                            |> Button.setOnClick SaveRecording
+                        )
+                        "Save recording"
+                    ]
+                ]
+
+
+viewReviewTab : Model -> Html Msg
+viewReviewTab model =
+    if List.isEmpty model.recordings then
+        Html.div [ class "text-center text-xl" ] [ Html.text "No recordings saved yet" ]
+
+    else
+        Html.div []
+            (List.map
+                (\recording ->
+                    Html.div []
+                        [ Html.div [] [ Html.text recording.video.title ]
+                        , Html.div [] [ Html.text (formatTime recording.time) ]
+                        , Html.div []
+                            [ if Just recording.video == model.selectedVideo then
+                                Button.raised
+                                    (Button.config
+                                        |> Button.setIcon (Just (Button.icon "play_arrow"))
+                                        |> Button.setOnClick (PlayRecording recording)
+                                    )
+                                    "Play recording"
+
+                              else
+                                Button.raised
+                                    (Button.config
+                                        |> Button.setIcon (Just (Button.icon "sync"))
+                                        |> Button.setOnClick (LoadVideo recording.video)
+                                    )
+                                    "Load video"
+                            ]
+                        ]
+                )
+                model.recordings
+            )
 
 
 formatTime : Float -> String
