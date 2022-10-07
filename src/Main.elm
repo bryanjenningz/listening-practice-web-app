@@ -12,7 +12,6 @@ import Material.Slider as Slider
 import Material.Tab as Tab exposing (Tab)
 import Material.TabBar as TabBar
 import Material.Theme as Theme
-import Time
 
 
 type alias TabData =
@@ -383,7 +382,7 @@ viewVideoCard model video =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
+subscriptions _ =
     getVideoTime GetVideoTime
 
 
