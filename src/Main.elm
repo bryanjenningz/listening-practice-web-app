@@ -154,10 +154,6 @@ remainingTabs =
                             model.recordings
                         )
       }
-    , { text = "Profile"
-      , icon = "person"
-      , content = \_ -> Html.text "Profile"
-      }
     ]
 
 
