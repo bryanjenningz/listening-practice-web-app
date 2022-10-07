@@ -109,11 +109,51 @@ remainingTabs =
                                     )
                                     (Fab.icon "fast_forward")
                                 ]
+                            , Html.div []
+                                [ Button.raised
+                                    (Button.config
+                                        |> Button.setIcon (Just (Button.icon "save"))
+                                        |> Button.setOnClick SaveRecording
+                                    )
+                                    "Save recording"
+                                ]
                             ]
       }
     , { text = "Review"
       , icon = "grading"
-      , content = \_ -> Html.text "Review"
+      , content =
+            \model ->
+                if List.isEmpty model.recordings then
+                    Html.div [ class "text-center text-xl" ] [ Html.text "No recordings saved yet" ]
+
+                else
+                    Html.div []
+                        (List.map
+                            (\recording ->
+                                Html.div []
+                                    [ Html.div [] [ Html.text recording.video.title ]
+                                    , Html.div [] [ Html.text (formatTime recording.time) ]
+                                    , Html.div []
+                                        [ if Just recording.video == model.selectedVideo then
+                                            Button.raised
+                                                (Button.config
+                                                    |> Button.setIcon (Just (Button.icon "play_arrow"))
+                                                    |> Button.setOnClick (PlayRecording recording)
+                                                )
+                                                "Play recording"
+
+                                          else
+                                            Button.raised
+                                                (Button.config
+                                                    |> Button.setIcon (Just (Button.icon "sync"))
+                                                    |> Button.setOnClick (LoadVideo recording.video)
+                                                )
+                                                "Load video"
+                                        ]
+                                    ]
+                            )
+                            model.recordings
+                        )
       }
     , { text = "Profile"
       , icon = "person"
@@ -168,6 +208,13 @@ type alias Model =
     , selectedVideo : Maybe VideoData
     , isPlaying : Bool
     , videoTime : Float
+    , recordings : List Recording
+    }
+
+
+type alias Recording =
+    { video : VideoData
+    , time : Float
     }
 
 
@@ -177,6 +224,7 @@ init () =
       , selectedVideo = Nothing
       , isPlaying = False
       , videoTime = 0
+      , recordings = []
       }
     , Cmd.none
     )
@@ -191,6 +239,9 @@ type Msg
     | FastRewind
     | GetVideoTime Float
     | SetVideoTime Float
+    | SaveRecording
+    | PlayRecording Recording
+    | LoadVideo VideoData
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -229,6 +280,32 @@ update msg model =
 
         SetVideoTime videoTime ->
             ( model, setVideoTime videoTime )
+
+        SaveRecording ->
+            case model.selectedVideo of
+                Nothing ->
+                    ( model, Cmd.none )
+
+                Just video ->
+                    ( { model
+                        | recordings =
+                            model.recordings
+                                ++ [ { video = video, time = model.videoTime } ]
+                      }
+                    , Cmd.none
+                    )
+
+        PlayRecording recording ->
+            ( { model | isPlaying = True }, playRecording recording )
+
+        LoadVideo video ->
+            ( { model
+                | selectedVideo = Just video
+                , isPlaying = False
+                , videoTime = 0
+              }
+            , loadVideo video.id
+            )
 
 
 view : Model -> Html Msg
@@ -329,6 +406,12 @@ port getVideoTime : (Float -> msg) -> Sub msg
 
 
 port setVideoTime : Float -> Cmd msg
+
+
+port loadVideo : String -> Cmd msg
+
+
+port playRecording : Recording -> Cmd msg
 
 
 main : Program () Model Msg
