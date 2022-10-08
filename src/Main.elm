@@ -1,6 +1,7 @@
 port module Main exposing (main)
 
 import Browser
+import Dict exposing (Dict)
 import Html exposing (Html)
 import Html.Attributes exposing (class, style)
 import List.Extra as List
@@ -21,13 +22,13 @@ type alias TabData =
     }
 
 
-findTabIndex : Int
-findTabIndex =
+findTabId : TabId
+findTabId =
     0
 
 
-listenTabIndex : Int
-listenTabIndex =
+listenTabId : TabId
+listenTabId =
     1
 
 
@@ -54,19 +55,25 @@ remainingTabs =
 
 viewFindTab : Model -> Html Msg
 viewFindTab model =
-    Html.div [] (List.map (viewVideoCard model) videos)
+    Html.div []
+        (List.map (viewVideoCard model)
+            (List.filterMap
+                (\videoId -> getVideo (Just videoId) model.videos)
+                model.videosOrdered
+            )
+        )
 
 
 viewListenTab : Model -> Html Msg
 viewListenTab model =
-    case model.selectedVideo of
+    case getVideo model.videoId model.videos of
         Nothing ->
             Html.div [ class "flex flex-col items-center" ]
                 [ Html.div [ class "mb-2 text-xl" ] [ Html.text "No video selected" ]
                 , Button.raised
                     (Button.config
                         |> Button.setIcon (Just (Button.icon "search"))
-                        |> Button.setOnClick (TabClicked findTabIndex)
+                        |> Button.setOnClick (TabClicked findTabId)
                     )
                     "Find a video"
                 ]
@@ -100,7 +107,7 @@ viewListenTab model =
                             |> Fab.setAttributes [ Theme.primaryBg ]
                         )
                         (Fab.icon "fast_rewind")
-                    , if model.isPlaying then
+                    , if model.videoIsPlaying then
                         Fab.fab
                             (Fab.config
                                 |> Fab.setOnClick PauseVideo
@@ -143,10 +150,15 @@ viewReviewTab model =
             (List.map
                 (\recording ->
                     Html.div []
-                        [ Html.div [] [ Html.text recording.video.title ]
+                        [ Html.div []
+                            [ getVideo (Just recording.videoId) model.videos
+                                |> Maybe.map .title
+                                |> Maybe.withDefault ""
+                                |> Html.text
+                            ]
                         , Html.div [] [ Html.text (formatTime recording.time) ]
                         , Html.div []
-                            [ if Just recording.video == model.selectedVideo then
+                            [ if Just recording.videoId == model.videoId then
                                 Button.raised
                                     (Button.config
                                         |> Button.setIcon (Just (Button.icon "play_arrow"))
@@ -158,7 +170,7 @@ viewReviewTab model =
                                 Button.raised
                                     (Button.config
                                         |> Button.setIcon (Just (Button.icon "sync"))
-                                        |> Button.setOnClick (LoadVideo recording.video)
+                                        |> Button.setOnClick (LoadVideo recording.videoId)
                                     )
                                     "Load video"
                             ]
@@ -185,15 +197,44 @@ formatTime totalSeconds =
         |> String.join ":"
 
 
-type alias VideoData =
-    { id : String
+type alias Model =
+    { tabId : TabId
+    , videoId : Maybe VideoId
+    , videoIsPlaying : Bool
+    , videoTime : VideoTime
+    , videos : Dict VideoId Video
+    , videosOrdered : List VideoId
+    , recordings : List Recording
+    }
+
+
+type alias TabId =
+    Int
+
+
+type alias VideoId =
+    String
+
+
+type alias VideoTime =
+    Float
+
+
+type alias Recording =
+    { videoId : VideoId
+    , time : Float
+    }
+
+
+type alias Video =
+    { id : VideoId
     , title : String
     , duration : Float
     }
 
 
-videos : List VideoData
-videos =
+initVideos : List Video
+initVideos =
     [ { id = "UwRZ8TY2Z4k"
       , title = "It's too hot this summer! Talk about our environment 今年夏天也太热了吧聊聊环保"
       , duration = 884.301
@@ -209,27 +250,22 @@ videos =
     ]
 
 
-type alias Model =
-    { selectedTab : Int
-    , selectedVideo : Maybe VideoData
-    , isPlaying : Bool
-    , videoTime : Float
-    , recordings : List Recording
-    }
-
-
-type alias Recording =
-    { video : VideoData
-    , time : Float
-    }
+getVideo : Maybe VideoId -> Dict VideoId Video -> Maybe Video
+getVideo videoId videos =
+    videoId |> Maybe.andThen (\id -> Dict.get id videos)
 
 
 init : () -> ( Model, Cmd Msg )
 init () =
-    ( { selectedTab = 0
-      , selectedVideo = Nothing
-      , isPlaying = False
+    ( { tabId = 0
+      , videoId = Nothing
+      , videoIsPlaying = False
       , videoTime = 0
+      , videos =
+            initVideos
+                |> List.map (\video -> ( video.id, video ))
+                |> Dict.fromList
+      , videosOrdered = initVideos |> List.map (\video -> video.id)
       , recordings = []
       }
     , Cmd.none
@@ -237,43 +273,43 @@ init () =
 
 
 type Msg
-    = TabClicked Int
-    | ListenToVideo VideoData
+    = TabClicked TabId
+    | ListenToVideo VideoId
     | PlayVideo
     | PauseVideo
     | FastForward
     | FastRewind
-    | GetVideoTime Float
-    | SetVideoTime Float
+    | GetVideoTime VideoTime
+    | SetVideoTime VideoTime
     | SaveRecording
     | PlayRecording Recording
-    | LoadVideo VideoData
+    | LoadVideo VideoId
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        TabClicked selectedTab ->
-            ( { model | selectedTab = selectedTab }, Cmd.none )
+        TabClicked tabId ->
+            ( { model | tabId = tabId }, Cmd.none )
 
-        ListenToVideo video ->
+        ListenToVideo videoId ->
             ( { model
-                | selectedTab = listenTabIndex
-                , selectedVideo = Just video
-                , isPlaying = True
+                | tabId = listenTabId
+                , videoId = Just videoId
+                , videoIsPlaying = True
               }
-            , if Just video == model.selectedVideo then
+            , if Just videoId == model.videoId then
                 playVideo ()
 
               else
-                startVideo video.id
+                startVideo videoId
             )
 
         PlayVideo ->
-            ( { model | isPlaying = True }, playVideo () )
+            ( { model | videoIsPlaying = True }, playVideo () )
 
         PauseVideo ->
-            ( { model | isPlaying = False }, pauseVideo () )
+            ( { model | videoIsPlaying = False }, pauseVideo () )
 
         FastForward ->
             ( model, fastForward () )
@@ -288,29 +324,29 @@ update msg model =
             ( model, setVideoTime videoTime )
 
         SaveRecording ->
-            case model.selectedVideo of
+            case model.videoId of
                 Nothing ->
                     ( model, Cmd.none )
 
-                Just video ->
+                Just videoId ->
                     ( { model
                         | recordings =
                             model.recordings
-                                ++ [ { video = video, time = model.videoTime } ]
+                                ++ [ { videoId = videoId, time = model.videoTime } ]
                       }
                     , Cmd.none
                     )
 
         PlayRecording recording ->
-            ( { model | isPlaying = True }, playRecording recording )
+            ( { model | videoIsPlaying = True }, playRecording recording )
 
-        LoadVideo video ->
+        LoadVideo videoId ->
             ( { model
-                | selectedVideo = Just video
-                , isPlaying = False
+                | videoId = Just videoId
+                , videoIsPlaying = False
                 , videoTime = 0
               }
-            , loadVideo video.id
+            , loadVideo videoId
             )
 
 
@@ -320,7 +356,7 @@ view model =
         [ Html.div [ class "fixed w-full" ] [ viewTabs model ]
         , Html.div [ class "pt-24 px-3" ]
             [ (firstTab :: remainingTabs)
-                |> List.getAt model.selectedTab
+                |> List.getAt model.tabId
                 |> Maybe.withDefault firstTab
                 |> (\tab -> tab.content model)
             ]
@@ -334,17 +370,17 @@ viewTabs model =
         (List.indexedMap (\i tab -> viewTab model (i + 1) tab) remainingTabs)
 
 
-viewTab : Model -> Int -> TabData -> Tab Msg
-viewTab model index tab =
+viewTab : Model -> TabId -> TabData -> Tab Msg
+viewTab model tabId tab =
     Tab.tab
         (Tab.config
-            |> Tab.setActive (model.selectedTab == index)
-            |> Tab.setOnClick (TabClicked index)
+            |> Tab.setActive (model.tabId == tabId)
+            |> Tab.setOnClick (TabClicked tabId)
         )
         { label = tab.text, icon = Just (Tab.icon tab.icon) }
 
 
-viewVideoCard : Model -> VideoData -> Html Msg
+viewVideoCard : Model -> Video -> Html Msg
 viewVideoCard model video =
     Card.card (Card.config |> Card.setAttributes [ class "px-4 pt-4 mb-4" ])
         { blocks =
@@ -360,13 +396,13 @@ viewVideoCard model video =
                     { buttons =
                         [ Card.button
                             (Button.config
-                                |> Button.setOnClick (ListenToVideo video)
+                                |> Button.setOnClick (ListenToVideo video.id)
                             )
                             "Listen"
                         ]
                     , icons =
-                        if model.selectedVideo == Just video then
-                            if model.isPlaying then
+                        if model.videoId == Just video.id then
+                            if model.videoIsPlaying then
                                 [ Card.icon
                                     (IconButton.config
                                         |> IconButton.setOnClick PauseVideo
