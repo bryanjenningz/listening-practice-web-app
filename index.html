@@ -1,0 +1,134 @@
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://fonts.googleapis.com/css?family=Roboto:300,400,500|Material+Icons"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/material-components-web-elm@9.1.0/dist/material-components-web-elm.min.css"
+    />
+    <script src="https://unpkg.com/material-components-web-elm@9.1.0/dist/material-components-web-elm.min.js"></script>
+    <script src="build/main.js"></script>
+  </head>
+  <body>
+    <main></main>
+    <div id="player"></div>
+    <script src="main.js"></script>
+    <script>
+      const INTERVAL_TIME = 100;
+      const SKIP_TIME = 5;
+
+      let player;
+      let isPlaying = false;
+      let intervalId = null;
+
+      initVideo();
+
+      const app = Elm.Main.init({ node: document.querySelector("main") });
+
+      app.ports.startVideo.subscribe((videoId) => {
+        if (!player || !player.loadVideoById) return;
+        player.loadVideoById(videoId);
+        playVideo();
+      });
+
+      app.ports.playVideo.subscribe(playVideo);
+
+      app.ports.pauseVideo.subscribe(pauseVideo);
+
+      app.ports.fastForward.subscribe(fastForward);
+
+      app.ports.fastRewind.subscribe(fastRewind);
+
+      app.ports.setVideoTime.subscribe(setVideoTime);
+
+      app.ports.playRecording.subscribe(playRecording);
+
+      app.ports.loadVideo.subscribe(loadVideo);
+
+      function playVideo() {
+        if (!player) return;
+        player.playVideo();
+        isPlaying = true;
+        if (!intervalId) {
+          intervalId = setInterval(getVideoTime, INTERVAL_TIME);
+        }
+      }
+
+      function pauseVideo() {
+        if (!player) return;
+        player.pauseVideo();
+        isPlaying = false;
+        clearInterval(intervalId);
+        intervalId = null;
+      }
+
+      function fastForward() {
+        if (!player) return;
+        const newPlayerTime = Math.min(
+          player.getDuration() || 0,
+          (player.getCurrentTime() || 0) + SKIP_TIME
+        );
+        player.seekTo(newPlayerTime);
+        app.ports.getVideoTime.send(newPlayerTime);
+      }
+
+      function fastRewind() {
+        if (!player) return;
+        const newPlayerTime = Math.max(
+          0,
+          (player.getCurrentTime() || 0) - SKIP_TIME
+        );
+        player.seekTo(newPlayerTime);
+        app.ports.getVideoTime.send(newPlayerTime);
+      }
+
+      function getVideoTime() {
+        if (!player) return;
+        app.ports.getVideoTime.send(player.getCurrentTime() || 0);
+      }
+
+      function setVideoTime(videoTime) {
+        if (!player) return;
+        player.seekTo(videoTime);
+        app.ports.getVideoTime.send(videoTime);
+      }
+
+      function playRecording(recording) {
+        if (!player) return;
+        player.seekTo(recording.time);
+        playVideo();
+      }
+
+      function loadVideo(videoId) {
+        if (!player || !player.loadVideoById) return;
+        player.loadVideoById(videoId);
+        player.seekTo(0);
+        pauseVideo();
+      }
+
+      function initVideo() {
+        const tag = document.createElement("script");
+        tag.src = "https://www.youtube.com/iframe_api";
+        const firstScriptTag = document.getElementsByTagName("script")[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+        window.onYouTubeIframeAPIReady = () => {
+          player = new YT.Player("player", {
+            height: 1,
+            width: 1,
+            videoId: "UwRZ8TY2Z4k",
+            playerVars: {
+              playsinline: 1,
+            },
+          });
+          window.player = player;
+        };
+      }
+    </script>
+  </body>
+</html>
