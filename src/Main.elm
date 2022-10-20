@@ -296,10 +296,6 @@ update msg model =
                     ( model, Cmd.none )
 
                 Ok video ->
-                    let
-                        _ =
-                            Debug.log "video" video
-                    in
                     ( { model | videos = model.videos ++ [ video ] }, Cmd.none )
 
 
