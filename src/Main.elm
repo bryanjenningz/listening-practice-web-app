@@ -3,10 +3,9 @@ port module Main exposing (main)
 import Browser
 import Dict exposing (Dict)
 import Html exposing (Html)
-import Html.Attributes exposing (attribute, class, classList, style)
-import Html.Events exposing (onClick)
+import Html.Attributes as Attr exposing (attribute, class, classList, style)
+import Html.Events exposing (onClick, onInput)
 import List.Extra as List
-import Material.Slider as Slider
 import Random
 import Subtitles exposing (Subtitle, SubtitleId, subtitles1, subtitles2, subtitles3)
 
@@ -71,15 +70,15 @@ viewListenTab model =
                 [ Html.div [ class "text-xl text-center" ]
                     [ Html.text video.title ]
                 , Html.div [ class "w-full" ]
-                    [ Slider.slider
-                        (Slider.config
-                            |> Slider.setMin 0
-                            |> Slider.setMax video.duration
-                            |> Slider.setOnInput SetVideoTime
-                            |> Slider.setValue (toFloat (round model.videoTime))
-                            |> Slider.setStep 1
-                            |> Slider.setAttributes [ style "margin" "0" ]
-                        )
+                    [ Html.input
+                        [ Attr.type_ "range"
+                        , Attr.min "0"
+                        , Attr.max (String.fromFloat video.duration)
+                        , Attr.step "1"
+                        , Attr.value (String.fromInt (round model.videoTime))
+                        , onInput (String.toFloat >> Maybe.map SetVideoTime >> Maybe.withDefault (SetVideoTime 0))
+                        ]
+                        []
                     ]
                 , Html.div []
                     [ Html.text
