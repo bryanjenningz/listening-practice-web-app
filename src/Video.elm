@@ -1,14 +1,30 @@
-module Video exposing (Subtitle, decodeSubtitles)
+module Video exposing (Subtitle, Video, VideoId, VideoTime, decodeSubtitles)
 
 import Dict
 import Json.Decode as Json
 import Parser exposing ((|.), (|=), Parser)
 
 
+type alias VideoId =
+    String
+
+
+type alias VideoTime =
+    Float
+
+
+type alias Video =
+    { id : VideoId
+    , title : String
+    , duration : Float
+    , subtitles : List Subtitle
+    }
+
+
 type alias Subtitle =
-    { videoId : String
+    { videoId : VideoId
     , text : String
-    , time : Float
+    , time : VideoTime
     }
 
 

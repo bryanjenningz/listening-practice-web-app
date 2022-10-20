@@ -6,7 +6,7 @@ import Html.Attributes as Attr exposing (attribute, class, classList)
 import Html.Events exposing (onClick, onInput)
 import Http
 import List.Extra as List
-import Video exposing (Subtitle, decodeSubtitles)
+import Video exposing (Subtitle, Video, VideoId, VideoTime, decodeSubtitles)
 
 
 backendUrlRoot : String
@@ -172,25 +172,9 @@ type alias TabId =
     Int
 
 
-type alias VideoId =
-    String
-
-
-type alias VideoTime =
-    Float
-
-
 type alias Recording =
     { videoId : VideoId
     , time : Float
-    }
-
-
-type alias Video =
-    { id : VideoId
-    , title : String
-    , duration : Float
-    , subtitles : List Subtitle
     }
 
 
