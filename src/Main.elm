@@ -414,7 +414,7 @@ view model =
 
 viewTabs : Model -> Html Msg
 viewTabs model =
-    Html.div [ class "h-16 flex text-xl" ]
+    Html.div [ class "h-16 flex text-xl bg-white" ]
         (List.indexedMap (viewTab model) tabs)
 
 
