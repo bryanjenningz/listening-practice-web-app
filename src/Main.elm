@@ -11,8 +11,6 @@ import Material.Card as Card
 import Material.Fab as Fab
 import Material.IconButton as IconButton
 import Material.Slider as Slider
-import Material.Tab as Tab exposing (Tab)
-import Material.TabBar as TabBar
 import Material.Theme as Theme
 import Random
 import Subtitles exposing (Subtitle, SubtitleId, subtitles1, subtitles2, subtitles3)
