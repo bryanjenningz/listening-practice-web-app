@@ -3,12 +3,9 @@ port module Main exposing (main)
 import Browser
 import Dict exposing (Dict)
 import Html exposing (Html)
-import Html.Attributes exposing (class, classList, style)
+import Html.Attributes exposing (attribute, class, classList, style)
 import Html.Events exposing (onClick)
 import List.Extra as List
-import Material.Button as Button
-import Material.Card as Card
-import Material.IconButton as IconButton
 import Material.Slider as Slider
 import Random
 import Subtitles exposing (Subtitle, SubtitleId, subtitles1, subtitles2, subtitles3)
@@ -92,13 +89,29 @@ viewListenTab model =
                         )
                     ]
                 , Html.div [ class "flex gap-2" ]
-                    [ Html.button [ onClick FastRewind ] [ Html.text "<<" ]
+                    [ Html.button
+                        [ onClick FastRewind
+                        , attribute "aria-label" "Rewind"
+                        ]
+                        [ Html.text "<<" ]
                     , if model.videoIsPlaying then
-                        Html.button [ onClick PauseVideo ] [ Html.text "||" ]
+                        Html.button
+                            [ onClick PauseVideo
+                            , attribute "aria-label" "Pause"
+                            ]
+                            [ Html.text "||" ]
 
                       else
-                        Html.button [ onClick PlayVideo ] [ Html.text "▶" ]
-                    , Html.button [ onClick FastForward ] [ Html.text ">>" ]
+                        Html.button
+                            [ onClick PlayVideo
+                            , attribute "aria-label" "Play"
+                            ]
+                            [ Html.text "▶" ]
+                    , Html.button
+                        [ onClick FastForward
+                        , attribute "aria-label" "Fast-forward"
+                        ]
+                        [ Html.text ">>" ]
                     ]
                 , Html.div []
                     [ Html.button [ onClick SaveRecording ] [ Html.text "Save" ] ]
@@ -106,11 +119,7 @@ viewListenTab model =
                     (video.subtitleIds
                         |> List.filterMap (\subtitleId -> Dict.get subtitleId model.subtitles)
                         |> List.map
-                            (\subtitle ->
-                                Html.div []
-                                    [ Html.div [ class "text-center" ] [ Html.text subtitle.text ]
-                                    ]
-                            )
+                            (\subtitle -> Html.div [ class "text-center" ] [ Html.text subtitle.text ])
                     )
                 ]
 
@@ -390,46 +399,30 @@ viewTab model tabId tab =
 
 viewVideoCard : Model -> Video -> Html Msg
 viewVideoCard model video =
-    Card.card (Card.config |> Card.setAttributes [ class "px-4 pt-4 mb-4" ])
-        { blocks =
-            ( Card.block <|
-                Html.div []
-                    [ Html.h2 [ class "text-xl" ] [ Html.text video.title ]
-                    ]
-            , []
-            )
-        , actions =
-            Just <|
-                Card.actions
-                    { buttons =
-                        [ Card.button
-                            (Button.config
-                                |> Button.setOnClick (ListenToVideo video.id)
-                            )
-                            "Listen"
+    Html.div [ class "px-4 pt-4 mb-4" ]
+        [ Html.div []
+            [ Html.h2 [ class "text-xl" ] [ Html.text video.title ]
+            , Html.button [ onClick (ListenToVideo video.id) ]
+                [ Html.text "Listen" ]
+            , if model.videoId == Just video.id then
+                if model.videoIsPlaying then
+                    Html.button
+                        [ onClick PauseVideo
+                        , attribute "aria-label" "Pause"
                         ]
-                    , icons =
-                        if model.videoId == Just video.id then
-                            if model.videoIsPlaying then
-                                [ Card.icon
-                                    (IconButton.config
-                                        |> IconButton.setOnClick PauseVideo
-                                    )
-                                    (IconButton.icon "pause")
-                                ]
+                        [ Html.text "||" ]
 
-                            else
-                                [ Card.icon
-                                    (IconButton.config
-                                        |> IconButton.setOnClick PlayVideo
-                                    )
-                                    (IconButton.icon "play_arrow")
-                                ]
+                else
+                    Html.button
+                        [ onClick PlayVideo
+                        , attribute "aria-label" "Play"
+                        ]
+                        [ Html.text "▶" ]
 
-                        else
-                            []
-                    }
-        }
+              else
+                Html.text ""
+            ]
+        ]
 
 
 subscriptions : Model -> Sub Msg
