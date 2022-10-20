@@ -1,4 +1,4 @@
-module Video exposing (Subtitle, Video, VideoId, VideoTime, decodeSubtitles)
+module Video exposing (Subtitle, Video, VideoId, VideoTime, decodeVideo)
 
 import Dict
 import Json.Decode as Json
@@ -26,6 +26,17 @@ type alias Subtitle =
     , text : String
     , time : VideoTime
     }
+
+
+decodeVideo : String -> Json.Decoder Video
+decodeVideo videoId =
+    Json.map4 Video
+        (Json.succeed videoId)
+        (Json.field "title" Json.string)
+        (Json.field "duration"
+            (Json.string |> Json.map (fromStrTime >> Maybe.map toFloat >> Maybe.withDefault -1))
+        )
+        (Json.field "subtitles" (decodeSubtitles videoId))
 
 
 decodeSubtitles : String -> Json.Decoder (List Subtitle)

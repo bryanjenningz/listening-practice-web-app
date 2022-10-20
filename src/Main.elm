@@ -6,7 +6,7 @@ import Html.Attributes as Attr exposing (attribute, class, classList)
 import Html.Events exposing (onClick, onInput)
 import Http
 import List.Extra as List
-import Video exposing (Subtitle, Video, VideoId, VideoTime, decodeSubtitles)
+import Video exposing (Video, VideoId, VideoTime, decodeVideo)
 
 
 backendUrlRoot : String
@@ -183,11 +183,11 @@ getVideo videoId videos =
     videoId |> Maybe.andThen (\id -> List.find (.id >> (==) id) videos)
 
 
-fetchSubtitles : String -> Cmd Msg
-fetchSubtitles videoId =
+fetchVideo : String -> Cmd Msg
+fetchVideo videoId =
     Http.get
         { url = backendUrlRoot ++ videoId ++ ".json"
-        , expect = Http.expectJson GotSubtitles (decodeSubtitles videoId)
+        , expect = Http.expectJson GotVideo (decodeVideo videoId)
         }
 
 
@@ -200,7 +200,7 @@ init () =
       , videos = []
       , recordings = []
       }
-    , fetchSubtitles "rg3JqmUmzlE"
+    , fetchVideo "rg3JqmUmzlE"
     )
 
 
@@ -216,7 +216,7 @@ type Msg
     | SaveRecording
     | PlayRecording Recording
     | LoadVideo VideoId
-    | GotSubtitles (Result Http.Error (List Subtitle))
+    | GotVideo (Result Http.Error Video)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -282,49 +282,15 @@ update msg model =
             , loadVideo videoId
             )
 
-        GotSubtitles response ->
+        GotVideo response ->
             case response of
-                Err err ->
-                    let
-                        _ =
-                            Debug.log "GotSubtitles error" err
-                    in
+                Err _ ->
                     ( model, Cmd.none )
 
-                Ok subtitles ->
-                    let
-                        videoId =
-                            List.head subtitles
-                                |> Maybe.map .videoId
-                                |> Maybe.withDefault ""
-
-                        maybeVideo =
-                            List.find (.id >> (==) videoId) model.videos
+                Ok video ->
+                    let _ = Debug.log "video" video
                     in
-                    case maybeVideo of
-                        Nothing ->
-                            ( { model
-                                | videos =
-                                    Debug.log "New videos" <|
-                                        model.videos
-                                            ++ [ { id = videoId
-                                                 , title = "Test title"
-                                                 , duration = 1234
-                                                 , subtitles = subtitles
-                                                 }
-                                               ]
-                              }
-                            , Cmd.none
-                            )
-
-                        Just _ ->
-                            ( { model
-                                | videos =
-                                    List.map (\video -> { video | subtitles = subtitles })
-                                        model.videos
-                              }
-                            , Cmd.none
-                            )
+                    ( { model | videos = model.videos ++ [ video ] }, Cmd.none )
 
 
 view : Model -> Html Msg
