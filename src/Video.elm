@@ -34,7 +34,10 @@ decodeVideo videoId =
         (Json.succeed videoId)
         (Json.field "title" Json.string)
         (Json.field "duration"
-            (Json.string |> Json.map (fromStrTime >> Maybe.map toFloat >> Maybe.withDefault 3600))
+            (Json.string
+                |> Json.map
+                    (fromStrTime >> Maybe.map toFloat >> Maybe.withDefault 3600)
+            )
         )
         (Json.field "subtitles" (decodeSubtitles videoId))
 
