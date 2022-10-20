@@ -139,31 +139,16 @@ viewListenTab model =
                         )
                         "Save recording"
                     ]
-                , case
-                    List.getAt model.subtitleIndex video.subtitleIds
-                        |> Maybe.andThen (\subtitleId -> Dict.get subtitleId model.subtitles)
-                  of
-                    Nothing ->
-                        Html.text ""
-
-                    Just subtitle ->
-                        Html.div []
-                            [ Html.div [ class "text-center" ] [ Html.text subtitle.text ]
-                            , Html.div [ class "flex gap-2" ]
-                                [ Fab.fab
-                                    (Fab.config
-                                        |> Fab.setOnClick PrevSubtitle
-                                        |> Fab.setAttributes [ Theme.primaryBg ]
-                                    )
-                                    (Fab.icon "keyboard_double_arrow_left")
-                                , Fab.fab
-                                    (Fab.config
-                                        |> Fab.setOnClick NextSubtitle
-                                        |> Fab.setAttributes [ Theme.primaryBg ]
-                                    )
-                                    (Fab.icon "keyboard_double_arrow_right")
-                                ]
-                            ]
+                , Html.div []
+                    (video.subtitleIds
+                        |> List.filterMap (\subtitleId -> Dict.get subtitleId model.subtitles)
+                        |> List.map
+                            (\subtitle ->
+                                Html.div []
+                                    [ Html.div [ class "text-center" ] [ Html.text subtitle.text ]
+                                    ]
+                            )
+                    )
                 ]
 
 
@@ -232,7 +217,6 @@ type alias Model =
     , videos : Dict VideoId Video
     , videosOrdered : List VideoId
     , recordings : List Recording
-    , subtitleIndex : Int
     , subtitles : Dict SubtitleId Subtitle
     }
 
@@ -300,7 +284,6 @@ init () =
                 |> Dict.fromList
       , videosOrdered = initVideos |> List.map (\video -> video.id)
       , recordings = []
-      , subtitleIndex = 0
       , subtitles = Dict.empty
       }
     , Cmd.batch
@@ -324,8 +307,6 @@ type Msg
     | PlayRecording Recording
     | LoadVideo VideoId
     | GetSubtitles (List Subtitle)
-    | NextSubtitle
-    | PrevSubtitle
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -421,20 +402,6 @@ update msg model =
                       }
                     , Cmd.none
                     )
-
-        NextSubtitle ->
-            let
-                subtitlesLength =
-                    getVideo model.videoId model.videos
-                        |> Maybe.map (\video -> List.length video.subtitleIds)
-                        |> Maybe.withDefault 0
-            in
-            ( { model | subtitleIndex = min (subtitlesLength - 1) (model.subtitleIndex + 1) }
-            , Cmd.none
-            )
-
-        PrevSubtitle ->
-            ( { model | subtitleIndex = max 0 (model.subtitleIndex - 1) }, Cmd.none )
 
 
 view : Model -> Html Msg
