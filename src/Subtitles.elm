@@ -11,7 +11,6 @@ type alias Subtitle =
     { id : SubtitleId
     , videoId : String
     , text : String
-    , time : Float
     }
 
 
@@ -33,7 +32,6 @@ generateSubtitles videoId subtitles =
                                     { id = subtitleId
                                     , videoId = videoId
                                     , text = line
-                                    , time = 0
                                     }
                                 )
                                 subtitleIds

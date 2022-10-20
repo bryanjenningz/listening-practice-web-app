@@ -149,7 +149,6 @@ viewListenTab model =
                     Just subtitle ->
                         Html.div []
                             [ Html.div [ class "text-center" ] [ Html.text subtitle.text ]
-                            , Html.div [ class "text-center" ] [ Html.text (formatTime subtitle.time) ]
                             , Html.div [ class "flex gap-2" ]
                                 [ Fab.fab
                                     (Fab.config
@@ -157,12 +156,6 @@ viewListenTab model =
                                         |> Fab.setAttributes [ Theme.primaryBg ]
                                     )
                                     (Fab.icon "keyboard_double_arrow_left")
-                                , Fab.fab
-                                    (Fab.config
-                                        |> Fab.setOnClick SetSubtitleTime
-                                        |> Fab.setAttributes [ Theme.primaryBg ]
-                                    )
-                                    (Fab.icon "save")
                                 , Fab.fab
                                     (Fab.config
                                         |> Fab.setOnClick NextSubtitle
@@ -331,7 +324,6 @@ type Msg
     | PlayRecording Recording
     | LoadVideo VideoId
     | GetSubtitles (List Subtitle)
-    | SetSubtitleTime
     | NextSubtitle
     | PrevSubtitle
 
@@ -426,28 +418,6 @@ update msg model =
                                 )
                                 model.videos
                         , subtitles = Dict.union subtitlesDict model.subtitles
-                      }
-                    , Cmd.none
-                    )
-
-        SetSubtitleTime ->
-            let
-                maybeSubtitle : Maybe Subtitle
-                maybeSubtitle =
-                    getVideo model.videoId model.videos
-                        |> Maybe.andThen (\video -> List.getAt model.subtitleIndex video.subtitleIds)
-                        |> Maybe.andThen (\subtitleId -> Dict.get subtitleId model.subtitles)
-            in
-            case maybeSubtitle of
-                Nothing ->
-                    ( model, Cmd.none )
-
-                Just subtitle ->
-                    ( { model
-                        | subtitles =
-                            Dict.update subtitle.id
-                                (Maybe.map (\sub -> { sub | time = model.videoTime }))
-                                model.subtitles
                       }
                     , Cmd.none
                     )
