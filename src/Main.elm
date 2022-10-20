@@ -74,7 +74,7 @@ viewListenTab model =
                         , Attr.min "0"
                         , Attr.max (String.fromFloat video.duration)
                         , Attr.step "1"
-                        , Attr.value (String.fromInt (round model.videoTime))
+                        , Attr.value (String.fromFloat model.videoTime)
                         , onInput (String.toFloat >> Maybe.map SetVideoTime >> Maybe.withDefault (SetVideoTime 0))
                         , class "block w-full md:w-3/4 lg:w-1/2 mx-auto"
                         ]
