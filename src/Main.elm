@@ -76,6 +76,7 @@ viewListenTab model =
                         , Attr.step "1"
                         , Attr.value (String.fromInt (round model.videoTime))
                         , onInput (String.toFloat >> Maybe.map SetVideoTime >> Maybe.withDefault (SetVideoTime 0))
+                        , class "block w-full md:w-3/4 lg:w-1/2 mx-auto"
                         ]
                         []
                     ]
