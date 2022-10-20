@@ -16,7 +16,7 @@ type alias VideoTime =
 type alias Video =
     { id : VideoId
     , title : String
-    , duration : Float
+    , duration : VideoTime
     , subtitles : List Subtitle
     }
 
@@ -34,7 +34,7 @@ decodeVideo videoId =
         (Json.succeed videoId)
         (Json.field "title" Json.string)
         (Json.field "duration"
-            (Json.string |> Json.map (fromStrTime >> Maybe.map toFloat >> Maybe.withDefault -1))
+            (Json.string |> Json.map (fromStrTime >> Maybe.map toFloat >> Maybe.withDefault 3600))
         )
         (Json.field "subtitles" (decodeSubtitles videoId))
 
