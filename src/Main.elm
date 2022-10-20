@@ -8,10 +8,8 @@ import Html.Events exposing (onClick)
 import List.Extra as List
 import Material.Button as Button
 import Material.Card as Card
-import Material.Fab as Fab
 import Material.IconButton as IconButton
 import Material.Slider as Slider
-import Material.Theme as Theme
 import Random
 import Subtitles exposing (Subtitle, SubtitleId, subtitles1, subtitles2, subtitles3)
 
@@ -67,12 +65,8 @@ viewListenTab model =
         Nothing ->
             Html.div [ class "flex flex-col items-center" ]
                 [ Html.div [ class "mb-2 text-xl" ] [ Html.text "No video selected" ]
-                , Button.raised
-                    (Button.config
-                        |> Button.setIcon (Just (Button.icon "search"))
-                        |> Button.setOnClick (TabClicked findTabId)
-                    )
-                    "Find a video"
+                , Html.button [ onClick (TabClicked findTabId) ]
+                    [ Html.text "Find a video" ]
                 ]
 
         Just video ->
@@ -98,42 +92,16 @@ viewListenTab model =
                         )
                     ]
                 , Html.div [ class "flex gap-2" ]
-                    [ Fab.fab
-                        (Fab.config
-                            |> Fab.setOnClick FastRewind
-                            |> Fab.setAttributes [ Theme.primaryBg ]
-                        )
-                        (Fab.icon "fast_rewind")
+                    [ Html.button [ onClick FastRewind ] [ Html.text "<<" ]
                     , if model.videoIsPlaying then
-                        Fab.fab
-                            (Fab.config
-                                |> Fab.setOnClick PauseVideo
-                                |> Fab.setAttributes [ Theme.primaryBg ]
-                            )
-                            (Fab.icon "pause")
+                        Html.button [ onClick PauseVideo ] [ Html.text "||" ]
 
                       else
-                        Fab.fab
-                            (Fab.config
-                                |> Fab.setOnClick PlayVideo
-                                |> Fab.setAttributes [ Theme.primaryBg ]
-                            )
-                            (Fab.icon "play_arrow")
-                    , Fab.fab
-                        (Fab.config
-                            |> Fab.setOnClick FastForward
-                            |> Fab.setAttributes [ Theme.primaryBg ]
-                        )
-                        (Fab.icon "fast_forward")
+                        Html.button [ onClick PlayVideo ] [ Html.text "▶" ]
+                    , Html.button [ onClick FastForward ] [ Html.text ">>" ]
                     ]
                 , Html.div []
-                    [ Button.raised
-                        (Button.config
-                            |> Button.setIcon (Just (Button.icon "save"))
-                            |> Button.setOnClick SaveRecording
-                        )
-                        "Save recording"
-                    ]
+                    [ Html.button [ onClick SaveRecording ] [ Html.text "Save" ] ]
                 , Html.div []
                     (video.subtitleIds
                         |> List.filterMap (\subtitleId -> Dict.get subtitleId model.subtitles)
@@ -166,20 +134,12 @@ viewReviewTab model =
                         , Html.div [] [ Html.text (formatTime recording.time) ]
                         , Html.div []
                             [ if Just recording.videoId == model.videoId then
-                                Button.raised
-                                    (Button.config
-                                        |> Button.setIcon (Just (Button.icon "play_arrow"))
-                                        |> Button.setOnClick (PlayRecording recording)
-                                    )
-                                    "Play recording"
+                                Html.button [ onClick (PlayRecording recording) ]
+                                    [ Html.text "Play recording" ]
 
                               else
-                                Button.raised
-                                    (Button.config
-                                        |> Button.setIcon (Just (Button.icon "sync"))
-                                        |> Button.setOnClick (LoadVideo recording.videoId)
-                                    )
-                                    "Load video"
+                                Html.button [ onClick (LoadVideo recording.videoId) ]
+                                    [ Html.text "Load video" ]
                             ]
                         ]
                 )
