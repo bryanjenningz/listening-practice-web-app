@@ -334,16 +334,21 @@ viewTab model tabId tab =
 
 viewVideoCard : Model -> Video -> Html Msg
 viewVideoCard model video =
-    Html.div [ class "px-4 pt-4 mb-4" ]
+    Html.div [ class "px-5 py-5 mb-4 shadow shadow-slate-100 mx-auto w-full md:w-3/4 lg:w-1/2" ]
         [ Html.div []
-            [ Html.h2 [ class "text-xl" ] [ Html.text video.title ]
-            , Html.button [ onClick (ListenToVideo video.id) ]
-                [ Html.text "Listen" ]
-            , if model.videoId == Just video.id then
-                playButton model []
+            [ Html.h2 [ class "text-xl mb-3" ] [ Html.text video.title ]
+            , Html.div [ class "flex justify-between" ]
+                [ Html.button
+                    [ onClick (ListenToVideo video.id)
+                    , class "px-3 h-12 bg-cyan-500 hover:bg-cyan-600"
+                    ]
+                    [ Html.text "Listen" ]
+                , if model.videoId == Just video.id then
+                    playButton model [ class "bg-cyan-500 hover:bg-cyan-600 w-12 h-12" ]
 
-              else
-                Html.text ""
+                  else
+                    Html.text ""
+                ]
             ]
         ]
 
