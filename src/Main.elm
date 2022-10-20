@@ -93,19 +93,7 @@ viewListenTab model =
                         , attribute "aria-label" "Rewind"
                         ]
                         [ Html.text "<<" ]
-                    , if model.videoIsPlaying then
-                        Html.button
-                            [ onClick PauseVideo
-                            , attribute "aria-label" "Pause"
-                            ]
-                            [ Html.text "||" ]
-
-                      else
-                        Html.button
-                            [ onClick PlayVideo
-                            , attribute "aria-label" "Play"
-                            ]
-                            [ Html.text "▶" ]
+                    , playButton model
                     , Html.button
                         [ onClick FastForward
                         , attribute "aria-label" "Fast-forward"
@@ -404,24 +392,29 @@ viewVideoCard model video =
             , Html.button [ onClick (ListenToVideo video.id) ]
                 [ Html.text "Listen" ]
             , if model.videoId == Just video.id then
-                if model.videoIsPlaying then
-                    Html.button
-                        [ onClick PauseVideo
-                        , attribute "aria-label" "Pause"
-                        ]
-                        [ Html.text "||" ]
-
-                else
-                    Html.button
-                        [ onClick PlayVideo
-                        , attribute "aria-label" "Play"
-                        ]
-                        [ Html.text "▶" ]
+                playButton model
 
               else
                 Html.text ""
             ]
         ]
+
+
+playButton : Model -> Html Msg
+playButton model =
+    if model.videoIsPlaying then
+        Html.button
+            [ onClick PauseVideo
+            , attribute "aria-label" "Pause"
+            ]
+            [ Html.text "||" ]
+
+    else
+        Html.button
+            [ onClick PlayVideo
+            , attribute "aria-label" "Play"
+            ]
+            [ Html.text "▶" ]
 
 
 subscriptions : Model -> Sub Msg
