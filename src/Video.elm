@@ -1,4 +1,4 @@
-module Subtitles exposing (Subtitle, decodeSubtitles)
+module Video exposing (Subtitle, decodeSubtitles)
 
 import Dict
 import Json.Decode as Json

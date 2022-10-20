@@ -1,13 +1,12 @@
 port module Main exposing (main)
 
 import Browser
-import Dict exposing (Dict)
 import Html exposing (Html)
-import Html.Attributes as Attr exposing (attribute, class, classList, style)
+import Html.Attributes as Attr exposing (attribute, class, classList)
 import Html.Events exposing (onClick, onInput)
 import Http
 import List.Extra as List
-import Subtitles exposing (Subtitle, decodeSubtitles)
+import Video exposing (Subtitle, decodeSubtitles)
 
 
 backendUrlRoot : String
