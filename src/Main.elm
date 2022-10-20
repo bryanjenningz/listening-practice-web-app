@@ -123,20 +123,23 @@ viewReviewTab model =
         Html.div [ class "text-center text-xl" ] [ Html.text "No recordings saved yet" ]
 
     else
-        Html.div []
+        Html.div [ class "grid gap-4 w-full md:w-3/4 lg:w-1/2 mx-auto" ]
             (List.map
                 (\recording ->
-                    Html.div []
+                    Html.div [ class "shadow shadow-white p-5" ]
                         [ Html.div []
                             [ getVideo (Just recording.videoId) model.videos
                                 |> Maybe.map .title
                                 |> Maybe.withDefault ""
                                 |> Html.text
                             ]
-                        , Html.div [] [ Html.text (formatTime recording.time) ]
+                        , Html.div [ class "mb-3" ] [ Html.text (formatTime recording.time) ]
                         , Html.div []
                             [ if Just recording.videoId == model.videoId then
-                                Html.button [ onClick (PlayRecording recording) ]
+                                Html.button
+                                    [ onClick (PlayRecording recording)
+                                    , class "px-5 h-12 bg-cyan-500 hover:bg-cyan-600"
+                                    ]
                                     [ Html.text "Play recording" ]
 
                               else
