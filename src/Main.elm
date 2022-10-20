@@ -1,7 +1,7 @@
 port module Main exposing (main)
 
 import Browser
-import Html exposing (Html)
+import Html exposing (Attribute, Html)
 import Html.Attributes as Attr exposing (attribute, class, classList)
 import Html.Events exposing (onClick, onInput)
 import Http
@@ -91,17 +91,24 @@ viewListenTab model =
                     [ Html.button
                         [ onClick FastRewind
                         , attribute "aria-label" "Rewind"
+                        , class "bg-cyan-500 w-12 h-12 hover:bg-cyan-600"
                         ]
                         [ Html.text "<<" ]
-                    , playButton model
+                    , playButton model [ class "bg-cyan-500 w-12 h-12 hover:bg-cyan-600" ]
                     , Html.button
                         [ onClick FastForward
                         , attribute "aria-label" "Fast-forward"
+                        , class "bg-cyan-500 w-12 h-12 hover:bg-cyan-600"
                         ]
                         [ Html.text ">>" ]
                     ]
                 , Html.div []
-                    [ Html.button [ onClick SaveRecording ] [ Html.text "Save" ] ]
+                    [ Html.button
+                        [ onClick SaveRecording
+                        , class "bg-cyan-500 px-16 h-12 hover:bg-cyan-600"
+                        ]
+                        [ Html.text "Save" ]
+                    ]
                 , Html.div []
                     (video.subtitles
                         |> List.map
@@ -289,7 +296,9 @@ update msg model =
                     ( model, Cmd.none )
 
                 Ok video ->
-                    let _ = Debug.log "video" video
+                    let
+                        _ =
+                            Debug.log "video" video
                     in
                     ( { model | videos = model.videos ++ [ video ] }, Cmd.none )
 
@@ -331,7 +340,7 @@ viewVideoCard model video =
             , Html.button [ onClick (ListenToVideo video.id) ]
                 [ Html.text "Listen" ]
             , if model.videoId == Just video.id then
-                playButton model
+                playButton model []
 
               else
                 Html.text ""
@@ -339,20 +348,24 @@ viewVideoCard model video =
         ]
 
 
-playButton : Model -> Html Msg
-playButton model =
+playButton : Model -> List (Attribute Msg) -> Html Msg
+playButton model attributes =
     if model.videoIsPlaying then
         Html.button
-            [ onClick PauseVideo
-            , attribute "aria-label" "Pause"
-            ]
+            (attributes
+                ++ [ onClick PauseVideo
+                   , attribute "aria-label" "Pause"
+                   ]
+            )
             [ Html.text "||" ]
 
     else
         Html.button
-            [ onClick PlayVideo
-            , attribute "aria-label" "Play"
-            ]
+            (attributes
+                ++ [ onClick PlayVideo
+                   , attribute "aria-label" "Play"
+                   ]
+            )
             [ Html.text "▶" ]
 
 
