@@ -370,14 +370,14 @@ view model =
 
 viewTabs : Model -> Html Msg
 viewTabs model =
-    Html.div [ class "h-16 flex text-xl bg-white" ]
+    Html.div [ class "h-16 flex text-xl bg-black" ]
         (List.indexedMap (viewTab model) tabs)
 
 
 viewTab : Model -> TabId -> TabData -> Html Msg
 viewTab model tabId tab =
     Html.button
-        [ classList [ ( "text-indigo-500 border-b-2 border-indigo-500", model.tabId == tabId ) ]
+        [ classList [ ( "text-cyan-400 border-b-2 border-cyan-400", model.tabId == tabId ) ]
         , class "grow h-full flex justify-center items-center cursor-pointer"
         , onClick (TabClicked tabId)
         ]
