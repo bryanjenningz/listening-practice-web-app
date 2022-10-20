@@ -404,16 +404,10 @@ view model =
     Html.div []
         [ Html.div [ class "fixed w-full" ] [ viewTabs model ]
         , Html.div [ class "pt-24 px-3" ]
-            [ case
-                tabs
-                    |> List.getAt model.tabId
-                    |> Maybe.map (\tab -> tab.content model)
-              of
-                Nothing ->
-                    Html.text ""
-
-                Just tabHtml ->
-                    tabHtml
+            [ tabs
+                |> List.getAt model.tabId
+                |> Maybe.map (\tab -> tab.content model)
+                |> Maybe.withDefault (Html.text "")
             ]
         ]
 
