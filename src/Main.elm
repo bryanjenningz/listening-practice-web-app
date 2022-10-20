@@ -5,9 +5,14 @@ import Dict exposing (Dict)
 import Html exposing (Html)
 import Html.Attributes as Attr exposing (attribute, class, classList, style)
 import Html.Events exposing (onClick, onInput)
+import Http
 import List.Extra as List
-import Random
-import Subtitles exposing (Subtitle, SubtitleId, subtitles1, subtitles2, subtitles3)
+import Subtitles exposing (Subtitle, decodeSubtitles)
+
+
+backendUrlRoot : String
+backendUrlRoot =
+    "http://127.0.0.1:8080/static/"
 
 
 type alias TabData =
@@ -47,12 +52,7 @@ tabs =
 viewFindTab : Model -> Html Msg
 viewFindTab model =
     Html.div []
-        (List.map (viewVideoCard model)
-            (List.filterMap
-                (\videoId -> getVideo (Just videoId) model.videos)
-                model.videosOrdered
-            )
-        )
+        (List.map (viewVideoCard model) model.videos)
 
 
 viewListenTab : Model -> Html Msg
@@ -103,8 +103,7 @@ viewListenTab model =
                 , Html.div []
                     [ Html.button [ onClick SaveRecording ] [ Html.text "Save" ] ]
                 , Html.div []
-                    (video.subtitleIds
-                        |> List.filterMap (\subtitleId -> Dict.get subtitleId model.subtitles)
+                    (video.subtitles
                         |> List.map
                             (\subtitle -> Html.div [ class "text-center" ] [ Html.text subtitle.text ])
                     )
@@ -165,10 +164,8 @@ type alias Model =
     , videoId : Maybe VideoId
     , videoIsPlaying : Bool
     , videoTime : VideoTime
-    , videos : Dict VideoId Video
-    , videosOrdered : List VideoId
+    , videos : List Video
     , recordings : List Recording
-    , subtitles : Dict SubtitleId Subtitle
     }
 
 
@@ -194,33 +191,21 @@ type alias Video =
     { id : VideoId
     , title : String
     , duration : Float
-    , subtitleIds : List SubtitleId
+    , subtitles : List Subtitle
     }
 
 
-initVideos : List Video
-initVideos =
-    [ { id = "UwRZ8TY2Z4k"
-      , title = "It's too hot this summer! Talk about our environment 今年夏天也太热了吧聊聊环保"
-      , duration = 884.301
-      , subtitleIds = []
-      }
-    , { id = "jKPlNHHYKZo"
-      , title = "Difference between giving Chinese and English names 中英文起名字的区别"
-      , duration = 2138.561
-      , subtitleIds = []
-      }
-    , { id = "8FKWqzd5jjs"
-      , title = "Talk about insomnia 失眠和晚睡强迫症"
-      , duration = 1391.061
-      , subtitleIds = []
-      }
-    ]
-
-
-getVideo : Maybe VideoId -> Dict VideoId Video -> Maybe Video
+getVideo : Maybe VideoId -> List Video -> Maybe Video
 getVideo videoId videos =
-    videoId |> Maybe.andThen (\id -> Dict.get id videos)
+    videoId |> Maybe.andThen (\id -> List.find (.id >> (==) id) videos)
+
+
+fetchSubtitles : String -> Cmd Msg
+fetchSubtitles videoId =
+    Http.get
+        { url = backendUrlRoot ++ videoId ++ ".json"
+        , expect = Http.expectJson GotSubtitles (decodeSubtitles videoId)
+        }
 
 
 init : () -> ( Model, Cmd Msg )
@@ -229,19 +214,10 @@ init () =
       , videoId = Nothing
       , videoIsPlaying = False
       , videoTime = 0
-      , videos =
-            initVideos
-                |> List.map (\video -> ( video.id, video ))
-                |> Dict.fromList
-      , videosOrdered = initVideos |> List.map (\video -> video.id)
+      , videos = []
       , recordings = []
-      , subtitles = Dict.empty
       }
-    , Cmd.batch
-        [ Random.generate GetSubtitles subtitles1
-        , Random.generate GetSubtitles subtitles2
-        , Random.generate GetSubtitles subtitles3
-        ]
+    , fetchSubtitles "rg3JqmUmzlE"
     )
 
 
@@ -257,7 +233,7 @@ type Msg
     | SaveRecording
     | PlayRecording Recording
     | LoadVideo VideoId
-    | GetSubtitles (List Subtitle)
+    | GotSubtitles (Result Http.Error (List Subtitle))
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -323,36 +299,49 @@ update msg model =
             , loadVideo videoId
             )
 
-        GetSubtitles subtitles ->
-            let
-                subtitlesDict =
-                    subtitles
-                        |> List.map (\subtitle -> ( subtitle.id, subtitle ))
-                        |> Dict.fromList
-
-                maybeVideoId =
-                    subtitles |> List.head |> Maybe.map .videoId
-            in
-            case maybeVideoId of
-                Nothing ->
+        GotSubtitles response ->
+            case response of
+                Err err ->
+                    let
+                        _ =
+                            Debug.log "GotSubtitles error" err
+                    in
                     ( model, Cmd.none )
 
-                Just videoId ->
-                    ( { model
-                        | videos =
-                            Dict.map
-                                (\_ video ->
-                                    if video.id == videoId then
-                                        { video | subtitleIds = List.map .id subtitles }
+                Ok subtitles ->
+                    let
+                        videoId =
+                            List.head subtitles
+                                |> Maybe.map .videoId
+                                |> Maybe.withDefault ""
 
-                                    else
-                                        video
-                                )
-                                model.videos
-                        , subtitles = Dict.union subtitlesDict model.subtitles
-                      }
-                    , Cmd.none
-                    )
+                        maybeVideo =
+                            List.find (.id >> (==) videoId) model.videos
+                    in
+                    case maybeVideo of
+                        Nothing ->
+                            ( { model
+                                | videos =
+                                    Debug.log "New videos" <|
+                                        model.videos
+                                            ++ [ { id = videoId
+                                                 , title = "Test title"
+                                                 , duration = 1234
+                                                 , subtitles = subtitles
+                                                 }
+                                               ]
+                              }
+                            , Cmd.none
+                            )
+
+                        Just _ ->
+                            ( { model
+                                | videos =
+                                    List.map (\video -> { video | subtitles = subtitles })
+                                        model.videos
+                              }
+                            , Cmd.none
+                            )
 
 
 view : Model -> Html Msg

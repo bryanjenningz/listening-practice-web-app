@@ -2,10 +2,12 @@
   "name": "mandarin-listening-web-app",
   "license": "MIT",
   "scripts": {
-    "dev": "elm-watch hot"
+    "dev": "elm-watch hot",
+    "server": "npx http-server"
   },
   "devDependencies": {
     "elm": "^0.19.1-5",
-    "elm-watch": "^1.0.2"
+    "elm-watch": "^1.0.2",
+    "http-server": "^14.1.1"
   }
 }
