@@ -3,7 +3,8 @@ port module Main exposing (main)
 import Browser
 import Dict exposing (Dict)
 import Html exposing (Html)
-import Html.Attributes exposing (class, style)
+import Html.Attributes exposing (class, classList, style)
+import Html.Events exposing (onClick)
 import List.Extra as List
 import Material.Button as Button
 import Material.Card as Card
@@ -34,17 +35,13 @@ listenTabId =
     1
 
 
-firstTab : TabData
-firstTab =
-    { text = "Find"
-    , icon = "search"
-    , content = viewFindTab
-    }
-
-
-remainingTabs : List TabData
-remainingTabs =
-    [ { text = "Listen"
+tabs : List TabData
+tabs =
+    [ { text = "Find"
+      , icon = "search"
+      , content = viewFindTab
+      }
+    , { text = "Listen"
       , icon = "headphones"
       , content = viewListenTab
       }
@@ -409,29 +406,34 @@ view model =
     Html.div []
         [ Html.div [ class "fixed w-full" ] [ viewTabs model ]
         , Html.div [ class "pt-24 px-3" ]
-            [ (firstTab :: remainingTabs)
-                |> List.getAt model.tabId
-                |> Maybe.withDefault firstTab
-                |> (\tab -> tab.content model)
+            [ case
+                tabs
+                    |> List.getAt model.tabId
+                    |> Maybe.map (\tab -> tab.content model)
+              of
+                Nothing ->
+                    Html.text ""
+
+                Just tabHtml ->
+                    tabHtml
             ]
         ]
 
 
 viewTabs : Model -> Html Msg
 viewTabs model =
-    TabBar.tabBar (TabBar.config |> TabBar.setStacked True)
-        (viewTab model 0 firstTab)
-        (List.indexedMap (\i tab -> viewTab model (i + 1) tab) remainingTabs)
+    Html.div [ class "h-16 flex text-xl" ]
+        (List.indexedMap (viewTab model) tabs)
 
 
-viewTab : Model -> TabId -> TabData -> Tab Msg
+viewTab : Model -> TabId -> TabData -> Html Msg
 viewTab model tabId tab =
-    Tab.tab
-        (Tab.config
-            |> Tab.setActive (model.tabId == tabId)
-            |> Tab.setOnClick (TabClicked tabId)
-        )
-        { label = tab.text, icon = Just (Tab.icon tab.icon) }
+    Html.button
+        [ classList [ ( "text-indigo-500 border-b-2 border-indigo-500", model.tabId == tabId ) ]
+        , class "grow h-full flex justify-center items-center cursor-pointer"
+        , onClick (TabClicked tabId)
+        ]
+        [ Html.text tab.text ]
 
 
 viewVideoCard : Model -> Video -> Html Msg
