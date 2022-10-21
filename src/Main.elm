@@ -117,7 +117,10 @@ init recordingsJson =
                 |> Result.andThen (Json.decodeString decodeRecordings)
                 |> Result.withDefault []
       }
-    , fetchVideo "rg3JqmUmzlE"
+    , Cmd.batch
+        [ fetchVideo "rg3JqmUmzlE"
+        , fetchVideo "CjARsd_4amM"
+        ]
     )
 
 
