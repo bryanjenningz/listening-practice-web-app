@@ -331,6 +331,7 @@ viewListenTab model =
                                     [ class "text-center"
                                     , classList
                                         [ ( "text-cyan-300", subtitle == currentSubtitle ) ]
+                                    , onClick (SetVideoTime subtitle.time)
                                     ]
                                     [ Html.text subtitle.text ]
                             )
