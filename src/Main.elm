@@ -7,7 +7,7 @@ import Html.Events exposing (onClick, onInput)
 import Http
 import Json.Decode as Json
 import List.Extra as List
-import Video exposing (Subtitle, Video, VideoId, VideoTime, decodeVideo)
+import Video exposing (Subtitle, Video, VideoId, VideoTime, decodeVideo, getSubtitleAt)
 
 
 backendUrlRoot : String
@@ -82,18 +82,6 @@ decodeRecordings =
 getVideo : Maybe VideoId -> List Video -> Maybe Video
 getVideo videoId videos =
     videoId |> Maybe.andThen (\id -> List.find (.id >> (==) id) videos)
-
-
-getSubtitleAt : Model -> Maybe Subtitle
-getSubtitleAt model =
-    let
-        timeTolerance =
-            1.5
-    in
-    getVideo model.videoId model.videos
-        |> Maybe.map .subtitles
-        |> Maybe.withDefault []
-        |> List.find (\subtitle -> model.videoTime < subtitle.time + timeTolerance)
 
 
 fetchVideo : String -> Cmd Msg
@@ -178,24 +166,21 @@ update msg model =
             ( model, setVideoTime videoTime )
 
         SaveRecording ->
-            case model.videoId of
+            case getVideo model.videoId model.videos of
                 Nothing ->
                     ( model, Cmd.none )
 
-                Just videoId ->
-                    let
-                        recordings =
-                            model.recordings
-                                ++ [ { videoId = videoId
-                                     , time = model.videoTime
-                                     , text =
-                                        getSubtitleAt model
-                                            |> Maybe.map .text
-                                            |> Maybe.withDefault ""
-                                     }
-                                   ]
-                    in
-                    ( { model | recordings = recordings }, saveRecordings recordings )
+                Just video ->
+                    case getSubtitleAt model.videoTime video.subtitles of
+                        Nothing ->
+                            ( model, Cmd.none )
+
+                        Just subtitle ->
+                            let
+                                recordings =
+                                    model.recordings ++ [ subtitle ]
+                            in
+                            ( { model | recordings = recordings }, saveRecordings recordings )
 
         PlayRecording recording ->
             ( { model | videoIsPlaying = True }, playRecording recording )

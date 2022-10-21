@@ -1,13 +1,13 @@
-module VideoTests exposing (suite)
+module VideoTests exposing (..)
 
 import Expect
 import Json.Decode as Json
 import Test exposing (Test, describe, test)
-import Video exposing (decodeVideo)
+import Video exposing (decodeVideo, getSubtitleAt)
 
 
-suite : Test
-suite =
+decodeVideoTests : Test
+decodeVideoTests =
     describe "decodeVideo"
         [ test "Fails on empty object" <|
             \_ ->
@@ -89,4 +89,73 @@ suite =
                             , title = "a2"
                             }
                         )
+        ]
+
+
+getSubtitleAtTests : Test
+getSubtitleAtTests =
+    describe "getSubtitleAt"
+        [ test "Returns nothing if there are no subtitles" <|
+            \_ ->
+                getSubtitleAt 5 [] |> Expect.equal Nothing
+        , test "Returns the first subtitle if the time is before all subtitles 1" <|
+            \_ ->
+                getSubtitleAt 5
+                    [ { videoId = "a", text = "b", time = 123 } ]
+                    |> Expect.equal (Just { videoId = "a", text = "b", time = 123 })
+        , test "Returns the first subtitle if the time is before all subtitles 2" <|
+            \_ ->
+                getSubtitleAt 5
+                    [ { videoId = "a", text = "b", time = 123 }
+                    , { videoId = "a2", text = "b2", time = 456 }
+                    ]
+                    |> Expect.equal (Just { videoId = "a", text = "b", time = 123 })
+        , test "Returns the first subtitle that the time is at or above 1" <|
+            \_ ->
+                getSubtitleAt 123
+                    [ { videoId = "a1", text = "b1", time = 123 }
+                    , { videoId = "a2", text = "b2", time = 456 }
+                    , { videoId = "a3", text = "b3", time = 789 }
+                    ]
+                    |> Expect.equal (Just { videoId = "a1", text = "b1", time = 123 })
+        , test "Returns the first subtitle that the time is at or above 2" <|
+            \_ ->
+                getSubtitleAt 124
+                    [ { videoId = "a1", text = "b1", time = 123 }
+                    , { videoId = "a2", text = "b2", time = 456 }
+                    , { videoId = "a3", text = "b3", time = 789 }
+                    ]
+                    |> Expect.equal (Just { videoId = "a1", text = "b1", time = 123 })
+        , test "Returns the first subtitle that the time is at or above 3" <|
+            \_ ->
+                getSubtitleAt 456
+                    [ { videoId = "a1", text = "b1", time = 123 }
+                    , { videoId = "a2", text = "b2", time = 456 }
+                    , { videoId = "a3", text = "b3", time = 789 }
+                    ]
+                    |> Expect.equal (Just { videoId = "a2", text = "b2", time = 456 })
+        , test "Returns the first subtitle that the time is at or above 4" <|
+            \_ ->
+                getSubtitleAt 788
+                    [ { videoId = "a1", text = "b1", time = 123 }
+                    , { videoId = "a2", text = "b2", time = 456 }
+                    , { videoId = "a3", text = "b3", time = 789 }
+                    ]
+                    |> Expect.equal (Just { videoId = "a2", text = "b2", time = 456 })
+        , test "Returns the first subtitle that the time is at or above 5" <|
+            \_ ->
+                getSubtitleAt 789
+                    [ { videoId = "a1", text = "b1", time = 123 }
+                    , { videoId = "a2", text = "b2", time = 456 }
+                    , { videoId = "a3", text = "b3", time = 789 }
+                    ]
+                    |> Expect.equal (Just { videoId = "a3", text = "b3", time = 789 })
+        , test "Returns the first subtitle that the time is at or above 6" <|
+            \_ ->
+                getSubtitleAt 9999
+                    [ { videoId = "a1", text = "b1", time = 123 }
+                    , { videoId = "a2", text = "b2", time = 456 }
+                    , { videoId = "a3", text = "b3", time = 789 }
+                    ]
+                    |> Expect.equal (Just { videoId = "a3", text = "b3", time = 789 })
         ]

@@ -1,7 +1,8 @@
-module Video exposing (Subtitle, Video, VideoId, VideoTime, decodeVideo)
+module Video exposing (Subtitle, Video, VideoId, VideoTime, decodeVideo, getSubtitleAt)
 
 import Dict
 import Json.Decode as Json
+import List.Extra as List
 import Parser exposing ((|.), (|=), Parser)
 
 
@@ -26,6 +27,16 @@ type alias Subtitle =
     , text : String
     , time : VideoTime
     }
+
+
+getSubtitleAt : VideoTime -> List Subtitle -> Maybe Subtitle
+getSubtitleAt videoTime subtitles =
+    case List.filter (\sub -> videoTime >= sub.time) subtitles |> List.last of
+        Nothing ->
+            List.head subtitles
+
+        subtitle ->
+            subtitle
 
 
 decodeVideo : String -> Json.Decoder Video
