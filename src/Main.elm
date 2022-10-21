@@ -132,6 +132,7 @@ type Msg
     | SetVideoTime VideoTime
     | SaveRecording
     | PlayRecording Recording
+    | DeleteRecording Recording
     | LoadVideo VideoId
     | GotVideo (Result Http.Error Video)
 
@@ -195,6 +196,13 @@ update msg model =
 
         PlayRecording recording ->
             ( { model | videoIsPlaying = True }, playRecording recording )
+
+        DeleteRecording deletedRecording ->
+            let
+                recordings =
+                    List.remove deletedRecording model.recordings
+            in
+            ( { model | recordings = recordings }, saveRecordings recordings )
 
         LoadVideo videoId ->
             ( { model
@@ -334,13 +342,13 @@ viewReviewTab model =
                         , Html.div [] [ Html.text (formatTime recording.time) ]
                         , Html.div []
                             [ Html.text recording.text ]
-                        , Html.div []
+                        , Html.div [ class "flex justify-between" ]
                             [ if Just recording.videoId == model.videoId then
                                 Html.button
                                     [ onClick (PlayRecording recording)
                                     , class "px-5 h-12 bg-cyan-500 hover:bg-cyan-600"
                                     ]
-                                    [ Html.text "Play recording" ]
+                                    [ Html.text "Play" ]
 
                               else
                                 Html.button
@@ -348,6 +356,11 @@ viewReviewTab model =
                                     , class "px-5 h-12 bg-cyan-500 hover:bg-cyan-600"
                                     ]
                                     [ Html.text "Load video" ]
+                            , Html.button
+                                [ onClick (DeleteRecording recording)
+                                , class "px-5 h-12 bg-cyan-500 hover:bg-cyan-600"
+                                ]
+                                [ Html.text "Delete" ]
                             ]
                         ]
                 )
