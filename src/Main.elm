@@ -275,6 +275,11 @@ viewListenTab model =
                 ]
 
         Just video ->
+            let
+                currentSubtitle =
+                    getSubtitleAt model.videoTime video.subtitles
+                        |> Maybe.withDefault (Subtitle "" "" -1)
+            in
             Html.div [ class "flex flex-col items-center gap-2 h-full" ]
                 [ Html.div [ class "text-xl text-center" ]
                     [ Html.text video.title ]
@@ -297,12 +302,7 @@ viewListenTab model =
                             ++ formatTime video.duration
                         )
                     ]
-                , case getSubtitleAt model.videoTime video.subtitles of
-                    Nothing ->
-                        Html.text ""
-
-                    Just subtitle ->
-                        Html.div [] [ Html.text subtitle.text ]
+                , Html.div [] [ Html.text currentSubtitle.text ]
                 , Html.div [ class "flex gap-2" ]
                     [ Html.button
                         [ onClick FastRewind
@@ -326,7 +326,14 @@ viewListenTab model =
                 , Html.div [ class "overflow-y-scroll h-1/2 md:h-3/5" ]
                     (video.subtitles
                         |> List.map
-                            (\subtitle -> Html.div [ class "text-center" ] [ Html.text subtitle.text ])
+                            (\subtitle ->
+                                Html.div
+                                    [ class "text-center"
+                                    , classList
+                                        [ ( "text-cyan-300", subtitle == currentSubtitle ) ]
+                                    ]
+                                    [ Html.text subtitle.text ]
+                            )
                     )
                 ]
 
