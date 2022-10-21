@@ -178,7 +178,16 @@ update msg model =
                         Just subtitle ->
                             let
                                 recordings =
-                                    model.recordings ++ [ subtitle ]
+                                    (model.recordings ++ [ subtitle ])
+                                        |> List.unique
+                                        |> List.sortWith
+                                            (\a b ->
+                                                if a.videoId /= b.videoId then
+                                                    compare a.time b.time
+
+                                                else
+                                                    compare a.videoId b.videoId
+                                            )
                             in
                             ( { model | recordings = recordings }, saveRecordings recordings )
 
@@ -207,7 +216,14 @@ update msg model =
                     ( model, Cmd.none )
 
                 Ok video ->
-                    ( { model | videos = model.videos ++ [ video ] }, Cmd.none )
+                    ( { model
+                        | videos =
+                            (model.videos ++ [ video ])
+                                |> List.unique
+                                |> List.sortBy .id
+                      }
+                    , Cmd.none
+                    )
 
 
 view : Model -> Html Msg
