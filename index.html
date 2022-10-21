@@ -12,6 +12,7 @@
     <script>
       const INTERVAL_TIME = 100;
       const SKIP_TIME = 5;
+      const RECORDINGS_KEY = "RECORDINGS_KEY";
 
       let player;
       let isPlaying = false;
@@ -19,27 +20,26 @@
 
       initVideo();
 
-      const app = Elm.Main.init({ node: document.querySelector("main") });
+      const app = Elm.Main.init({
+        node: document.querySelector("main"),
+        flags: getRecordings(),
+      });
 
-      app.ports.startVideo.subscribe((videoId) => {
+      app.ports.startVideo.subscribe(startVideo);
+      app.ports.playVideo.subscribe(playVideo);
+      app.ports.pauseVideo.subscribe(pauseVideo);
+      app.ports.fastForward.subscribe(fastForward);
+      app.ports.fastRewind.subscribe(fastRewind);
+      app.ports.setVideoTime.subscribe(setVideoTime);
+      app.ports.playRecording.subscribe(playRecording);
+      app.ports.loadVideo.subscribe(loadVideo);
+      app.ports.saveRecordings.subscribe(saveRecordings);
+
+      function startVideo(videoId) {
         if (!player || !player.loadVideoById) return;
         player.loadVideoById(videoId);
         playVideo();
-      });
-
-      app.ports.playVideo.subscribe(playVideo);
-
-      app.ports.pauseVideo.subscribe(pauseVideo);
-
-      app.ports.fastForward.subscribe(fastForward);
-
-      app.ports.fastRewind.subscribe(fastRewind);
-
-      app.ports.setVideoTime.subscribe(setVideoTime);
-
-      app.ports.playRecording.subscribe(playRecording);
-
-      app.ports.loadVideo.subscribe(loadVideo);
+      }
 
       function playVideo() {
         if (!player) return;
@@ -119,6 +119,14 @@
           });
           window.player = player;
         };
+      }
+
+      function getRecordings() {
+        return localStorage.getItem(RECORDINGS_KEY);
+      }
+
+      function saveRecordings(recordings) {
+        localStorage.setItem(RECORDINGS_KEY, JSON.stringify(recordings));
       }
     </script>
   </body>

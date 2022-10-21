@@ -5,6 +5,7 @@ import Html exposing (Attribute, Html)
 import Html.Attributes as Attr exposing (attribute, class, classList)
 import Html.Events exposing (onClick, onInput)
 import Http
+import Json.Decode as Json
 import List.Extra as List
 import Video exposing (Subtitle, Video, VideoId, VideoTime, decodeVideo)
 
@@ -192,6 +193,15 @@ type alias Recording =
     }
 
 
+decodeRecordings : Json.Decoder (List Recording)
+decodeRecordings =
+    Json.list <|
+        Json.map3 Recording
+            (Json.field "videoId" Json.string)
+            (Json.field "time" Json.float)
+            (Json.field "text" Json.string)
+
+
 getVideo : Maybe VideoId -> List Video -> Maybe Video
 getVideo videoId videos =
     videoId |> Maybe.andThen (\id -> List.find (.id >> (==) id) videos)
@@ -217,14 +227,18 @@ fetchVideo videoId =
         }
 
 
-init : () -> ( Model, Cmd Msg )
-init () =
+init : Json.Value -> ( Model, Cmd Msg )
+init recordingsJson =
     ( { tabId = 0
       , videoId = Nothing
       , videoIsPlaying = False
       , videoTime = 0
       , videos = []
-      , recordings = []
+      , recordings =
+            recordingsJson
+                |> Json.decodeValue Json.string
+                |> Result.andThen (Json.decodeString decodeRecordings)
+                |> Result.withDefault []
       }
     , fetchVideo "rg3JqmUmzlE"
     )
@@ -288,8 +302,8 @@ update msg model =
                     ( model, Cmd.none )
 
                 Just videoId ->
-                    ( { model
-                        | recordings =
+                    let
+                        recordings =
                             model.recordings
                                 ++ [ { videoId = videoId
                                      , time = model.videoTime
@@ -299,9 +313,8 @@ update msg model =
                                             |> Maybe.withDefault ""
                                      }
                                    ]
-                      }
-                    , Cmd.none
-                    )
+                    in
+                    ( { model | recordings = recordings }, saveRecordings recordings )
 
         PlayRecording recording ->
             ( { model | videoIsPlaying = True }, playRecording recording )
@@ -427,7 +440,10 @@ port loadVideo : String -> Cmd msg
 port playRecording : Recording -> Cmd msg
 
 
-main : Program () Model Msg
+port saveRecordings : List Recording -> Cmd msg
+
+
+main : Program Json.Value Model Msg
 main =
     Browser.element
         { init = init
