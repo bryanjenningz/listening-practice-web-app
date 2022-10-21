@@ -306,17 +306,15 @@ viewListenTab model =
                 , Html.div [ class "flex gap-2" ]
                     [ Html.button
                         [ onClick FastRewind
-                        , attribute "aria-label" "Rewind"
                         , class "bg-cyan-500 w-12 h-12 hover:bg-cyan-600"
                         ]
-                        [ Html.text "<<" ]
+                        [ labeledSymbol "Rewind" "<<" ]
                     , playButton model [ class "bg-cyan-500 w-12 h-12 hover:bg-cyan-600" ]
                     , Html.button
                         [ onClick FastForward
-                        , attribute "aria-label" "Fast-forward"
                         , class "bg-cyan-500 w-12 h-12 hover:bg-cyan-600"
                         ]
-                        [ Html.text ">>" ]
+                        [ labeledSymbol "Fast-forward" ">>" ]
                     ]
                 , Html.div []
                     [ Html.button
@@ -331,6 +329,14 @@ viewListenTab model =
                             (\subtitle -> Html.div [ class "text-center" ] [ Html.text subtitle.text ])
                     )
                 ]
+
+
+labeledSymbol : String -> String -> Html msg
+labeledSymbol label symbol =
+    Html.span []
+        [ Html.span [ attribute "aria-hidden" "true" ] [ Html.text symbol ]
+        , Html.span [ class "sr-only" ] [ Html.text label ]
+        ]
 
 
 viewReviewTab : Model -> Html Msg
@@ -419,22 +425,12 @@ viewVideoCard model video =
 playButton : Model -> List (Attribute Msg) -> Html Msg
 playButton model attributes =
     if model.videoIsPlaying then
-        Html.button
-            (attributes
-                ++ [ onClick PauseVideo
-                   , attribute "aria-label" "Pause"
-                   ]
-            )
-            [ Html.text "||" ]
+        Html.button (attributes ++ [ onClick PauseVideo ])
+            [ labeledSymbol "Pause" "||" ]
 
     else
-        Html.button
-            (attributes
-                ++ [ onClick PlayVideo
-                   , attribute "aria-label" "Play"
-                   ]
-            )
-            [ Html.text "▶" ]
+        Html.button (attributes ++ [ onClick PlayVideo ])
+            [ labeledSymbol "Play" "▶" ]
 
 
 subscriptions : Model -> Sub Msg
