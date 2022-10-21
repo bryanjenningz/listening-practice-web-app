@@ -92,6 +92,13 @@ fetchVideo videoId =
         }
 
 
+videoIds : List String
+videoIds =
+    [ "rg3JqmUmzlE"
+    , "CjARsd_4amM"
+    ]
+
+
 init : Json.Value -> ( Model, Cmd Msg )
 init recordingsJson =
     ( { tabId = 0
@@ -105,10 +112,7 @@ init recordingsJson =
                 |> Result.andThen (Json.decodeString decodeRecordings)
                 |> Result.withDefault []
       }
-    , Cmd.batch
-        [ fetchVideo "rg3JqmUmzlE"
-        , fetchVideo "CjARsd_4amM"
-        ]
+    , Cmd.batch (List.map fetchVideo videoIds)
     )
 
 
