@@ -49,135 +49,6 @@ tabs =
     ]
 
 
-viewFindTab : Model -> Html Msg
-viewFindTab model =
-    Html.div []
-        (List.map (viewVideoCard model) model.videos)
-
-
-viewListenTab : Model -> Html Msg
-viewListenTab model =
-    case getVideo model.videoId model.videos of
-        Nothing ->
-            Html.div [ class "flex flex-col items-center" ]
-                [ Html.div [ class "mb-2 text-xl" ] [ Html.text "No video selected" ]
-                , Html.button
-                    [ onClick (TabClicked findTabId)
-                    , class "px-3 h-12 bg-cyan-500 hover:bg-cyan-600"
-                    ]
-                    [ Html.text "Find a video" ]
-                ]
-
-        Just video ->
-            Html.div [ class "flex flex-col items-center gap-2" ]
-                [ Html.div [ class "text-xl text-center" ]
-                    [ Html.text video.title ]
-                , Html.div [ class "w-full" ]
-                    [ Html.input
-                        [ Attr.type_ "range"
-                        , Attr.min "0"
-                        , Attr.max (String.fromFloat video.duration)
-                        , Attr.step "1"
-                        , Attr.value (String.fromFloat model.videoTime)
-                        , onInput (String.toFloat >> Maybe.map SetVideoTime >> Maybe.withDefault (SetVideoTime 0))
-                        , class "block w-full md:w-3/4 lg:w-1/2 mx-auto"
-                        ]
-                        []
-                    ]
-                , Html.div []
-                    [ Html.text
-                        (formatTime model.videoTime
-                            ++ " / "
-                            ++ formatTime video.duration
-                        )
-                    ]
-                , Html.div [ class "flex gap-2" ]
-                    [ Html.button
-                        [ onClick FastRewind
-                        , attribute "aria-label" "Rewind"
-                        , class "bg-cyan-500 w-12 h-12 hover:bg-cyan-600"
-                        ]
-                        [ Html.text "<<" ]
-                    , playButton model [ class "bg-cyan-500 w-12 h-12 hover:bg-cyan-600" ]
-                    , Html.button
-                        [ onClick FastForward
-                        , attribute "aria-label" "Fast-forward"
-                        , class "bg-cyan-500 w-12 h-12 hover:bg-cyan-600"
-                        ]
-                        [ Html.text ">>" ]
-                    ]
-                , Html.div []
-                    [ Html.button
-                        [ onClick SaveRecording
-                        , class "bg-cyan-500 px-16 h-12 hover:bg-cyan-600"
-                        ]
-                        [ Html.text "Save" ]
-                    ]
-                , Html.div []
-                    (video.subtitles
-                        |> List.map
-                            (\subtitle -> Html.div [ class "text-center" ] [ Html.text subtitle.text ])
-                    )
-                ]
-
-
-viewReviewTab : Model -> Html Msg
-viewReviewTab model =
-    if List.isEmpty model.recordings then
-        Html.div [ class "text-center text-xl" ] [ Html.text "No recordings saved yet" ]
-
-    else
-        Html.div [ class "grid gap-4 w-full md:w-3/4 lg:w-1/2 mx-auto" ]
-            (List.map
-                (\recording ->
-                    Html.div [ class "grid gap-2 shadow shadow-white p-5" ]
-                        [ Html.div []
-                            [ getVideo (Just recording.videoId) model.videos
-                                |> Maybe.map .title
-                                |> Maybe.withDefault ""
-                                |> Html.text
-                            ]
-                        , Html.div [] [ Html.text (formatTime recording.time) ]
-                        , Html.div []
-                            [ Html.text recording.text ]
-                        , Html.div []
-                            [ if Just recording.videoId == model.videoId then
-                                Html.button
-                                    [ onClick (PlayRecording recording)
-                                    , class "px-5 h-12 bg-cyan-500 hover:bg-cyan-600"
-                                    ]
-                                    [ Html.text "Play recording" ]
-
-                              else
-                                Html.button
-                                    [ onClick (LoadVideo recording.videoId)
-                                    , class "px-5 h-12 bg-cyan-500 hover:bg-cyan-600"
-                                    ]
-                                    [ Html.text "Load video" ]
-                            ]
-                        ]
-                )
-                model.recordings
-            )
-
-
-formatTime : Float -> String
-formatTime totalSeconds =
-    let
-        seconds =
-            floor totalSeconds |> modBy 60
-
-        minutes =
-            (floor totalSeconds // 60) |> modBy 60
-
-        hours =
-            floor totalSeconds // 60 // 60
-    in
-    [ hours, minutes, seconds ]
-        |> List.map (String.fromInt >> String.padLeft 2 '0' >> String.right 2)
-        |> String.join ":"
-
-
 type alias Model =
     { tabId : TabId
     , videoId : Maybe VideoId
@@ -370,6 +241,135 @@ viewTab model tabId tab =
         , onClick (TabClicked tabId)
         ]
         [ Html.text tab.text ]
+
+
+viewFindTab : Model -> Html Msg
+viewFindTab model =
+    Html.div []
+        (List.map (viewVideoCard model) model.videos)
+
+
+viewListenTab : Model -> Html Msg
+viewListenTab model =
+    case getVideo model.videoId model.videos of
+        Nothing ->
+            Html.div [ class "flex flex-col items-center" ]
+                [ Html.div [ class "mb-2 text-xl" ] [ Html.text "No video selected" ]
+                , Html.button
+                    [ onClick (TabClicked findTabId)
+                    , class "px-3 h-12 bg-cyan-500 hover:bg-cyan-600"
+                    ]
+                    [ Html.text "Find a video" ]
+                ]
+
+        Just video ->
+            Html.div [ class "flex flex-col items-center gap-2" ]
+                [ Html.div [ class "text-xl text-center" ]
+                    [ Html.text video.title ]
+                , Html.div [ class "w-full" ]
+                    [ Html.input
+                        [ Attr.type_ "range"
+                        , Attr.min "0"
+                        , Attr.max (String.fromFloat video.duration)
+                        , Attr.step "1"
+                        , Attr.value (String.fromFloat model.videoTime)
+                        , onInput (String.toFloat >> Maybe.map SetVideoTime >> Maybe.withDefault (SetVideoTime 0))
+                        , class "block w-full md:w-3/4 lg:w-1/2 mx-auto"
+                        ]
+                        []
+                    ]
+                , Html.div []
+                    [ Html.text
+                        (formatTime model.videoTime
+                            ++ " / "
+                            ++ formatTime video.duration
+                        )
+                    ]
+                , Html.div [ class "flex gap-2" ]
+                    [ Html.button
+                        [ onClick FastRewind
+                        , attribute "aria-label" "Rewind"
+                        , class "bg-cyan-500 w-12 h-12 hover:bg-cyan-600"
+                        ]
+                        [ Html.text "<<" ]
+                    , playButton model [ class "bg-cyan-500 w-12 h-12 hover:bg-cyan-600" ]
+                    , Html.button
+                        [ onClick FastForward
+                        , attribute "aria-label" "Fast-forward"
+                        , class "bg-cyan-500 w-12 h-12 hover:bg-cyan-600"
+                        ]
+                        [ Html.text ">>" ]
+                    ]
+                , Html.div []
+                    [ Html.button
+                        [ onClick SaveRecording
+                        , class "bg-cyan-500 px-16 h-12 hover:bg-cyan-600"
+                        ]
+                        [ Html.text "Save" ]
+                    ]
+                , Html.div []
+                    (video.subtitles
+                        |> List.map
+                            (\subtitle -> Html.div [ class "text-center" ] [ Html.text subtitle.text ])
+                    )
+                ]
+
+
+viewReviewTab : Model -> Html Msg
+viewReviewTab model =
+    if List.isEmpty model.recordings then
+        Html.div [ class "text-center text-xl" ] [ Html.text "No recordings saved yet" ]
+
+    else
+        Html.div [ class "grid gap-4 w-full md:w-3/4 lg:w-1/2 mx-auto" ]
+            (List.map
+                (\recording ->
+                    Html.div [ class "grid gap-2 shadow shadow-white p-5" ]
+                        [ Html.div []
+                            [ getVideo (Just recording.videoId) model.videos
+                                |> Maybe.map .title
+                                |> Maybe.withDefault ""
+                                |> Html.text
+                            ]
+                        , Html.div [] [ Html.text (formatTime recording.time) ]
+                        , Html.div []
+                            [ Html.text recording.text ]
+                        , Html.div []
+                            [ if Just recording.videoId == model.videoId then
+                                Html.button
+                                    [ onClick (PlayRecording recording)
+                                    , class "px-5 h-12 bg-cyan-500 hover:bg-cyan-600"
+                                    ]
+                                    [ Html.text "Play recording" ]
+
+                              else
+                                Html.button
+                                    [ onClick (LoadVideo recording.videoId)
+                                    , class "px-5 h-12 bg-cyan-500 hover:bg-cyan-600"
+                                    ]
+                                    [ Html.text "Load video" ]
+                            ]
+                        ]
+                )
+                model.recordings
+            )
+
+
+formatTime : Float -> String
+formatTime totalSeconds =
+    let
+        seconds =
+            floor totalSeconds |> modBy 60
+
+        minutes =
+            (floor totalSeconds // 60) |> modBy 60
+
+        hours =
+            floor totalSeconds // 60 // 60
+    in
+    [ hours, minutes, seconds ]
+        |> List.map (String.fromInt >> String.padLeft 2 '0' >> String.right 2)
+        |> String.join ":"
 
 
 viewVideoCard : Model -> Video -> Html Msg
