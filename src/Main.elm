@@ -275,7 +275,7 @@ viewListenTab model =
                 ]
 
         Just video ->
-            Html.div [ class "flex flex-col items-center gap-2" ]
+            Html.div [ class "flex flex-col items-center gap-2 h-full" ]
                 [ Html.div [ class "text-xl text-center" ]
                     [ Html.text video.title ]
                 , Html.div [ class "w-full" ]
@@ -323,7 +323,7 @@ viewListenTab model =
                         ]
                         [ Html.text "Save" ]
                     ]
-                , Html.div []
+                , Html.div [ class "overflow-y-scroll h-1/2 md:h-3/5" ]
                     (video.subtitles
                         |> List.map
                             (\subtitle -> Html.div [ class "text-center" ] [ Html.text subtitle.text ])
