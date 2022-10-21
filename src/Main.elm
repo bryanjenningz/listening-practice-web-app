@@ -84,8 +84,8 @@ getVideo videoId videos =
     videoId |> Maybe.andThen (\id -> List.find (.id >> (==) id) videos)
 
 
-getCurrentSubtitle : Model -> Maybe Subtitle
-getCurrentSubtitle model =
+getSubtitleAt : Model -> Maybe Subtitle
+getSubtitleAt model =
     let
         timeTolerance =
             1.5
@@ -189,7 +189,7 @@ update msg model =
                                 ++ [ { videoId = videoId
                                      , time = model.videoTime
                                      , text =
-                                        getCurrentSubtitle model
+                                        getSubtitleAt model
                                             |> Maybe.map .text
                                             |> Maybe.withDefault ""
                                      }
