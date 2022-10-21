@@ -149,7 +149,10 @@ viewReviewTab model =
                                     [ Html.text "Play recording" ]
 
                               else
-                                Html.button [ onClick (LoadVideo recording.videoId) ]
+                                Html.button
+                                    [ onClick (LoadVideo recording.videoId)
+                                    , class "px-5 h-12 bg-cyan-500 hover:bg-cyan-600"
+                                    ]
                                     [ Html.text "Load video" ]
                             ]
                         ]
