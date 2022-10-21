@@ -61,7 +61,10 @@ viewListenTab model =
         Nothing ->
             Html.div [ class "flex flex-col items-center" ]
                 [ Html.div [ class "mb-2 text-xl" ] [ Html.text "No video selected" ]
-                , Html.button [ onClick (TabClicked findTabId) ]
+                , Html.button
+                    [ onClick (TabClicked findTabId)
+                    , class "px-3 h-12 bg-cyan-500 hover:bg-cyan-600"
+                    ]
                     [ Html.text "Find a video" ]
                 ]
 
