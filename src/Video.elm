@@ -81,8 +81,10 @@ parseTime =
 parseInt : Parser Int
 parseInt =
     Parser.succeed identity
-        |. Parser.oneOf
-            [ Parser.token "0"
-            , Parser.succeed ()
+        |= Parser.oneOf
+            [ Parser.backtrackable <|
+                Parser.succeed identity
+                    |. Parser.token "0"
+                    |= Parser.int
+            , Parser.int
             ]
-        |= Parser.int
