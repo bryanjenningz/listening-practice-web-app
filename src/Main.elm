@@ -6,7 +6,7 @@ import Html.Attributes as Attr exposing (attribute, class, classList)
 import Html.Events exposing (onClick, onInput)
 import Http
 import List.Extra as List
-import Video exposing (Video, VideoId, VideoTime, decodeVideo)
+import Video exposing (Subtitle, Video, VideoId, VideoTime, decodeVideo)
 
 
 backendUrlRoot : String
@@ -126,14 +126,16 @@ viewReviewTab model =
         Html.div [ class "grid gap-4 w-full md:w-3/4 lg:w-1/2 mx-auto" ]
             (List.map
                 (\recording ->
-                    Html.div [ class "shadow shadow-white p-5" ]
+                    Html.div [ class "grid gap-2 shadow shadow-white p-5" ]
                         [ Html.div []
                             [ getVideo (Just recording.videoId) model.videos
                                 |> Maybe.map .title
                                 |> Maybe.withDefault ""
                                 |> Html.text
                             ]
-                        , Html.div [ class "mb-3" ] [ Html.text (formatTime recording.time) ]
+                        , Html.div [] [ Html.text (formatTime recording.time) ]
+                        , Html.div []
+                            [ Html.text recording.text ]
                         , Html.div []
                             [ if Just recording.videoId == model.videoId then
                                 Html.button
@@ -186,12 +188,25 @@ type alias TabId =
 type alias Recording =
     { videoId : VideoId
     , time : Float
+    , text : String
     }
 
 
 getVideo : Maybe VideoId -> List Video -> Maybe Video
 getVideo videoId videos =
     videoId |> Maybe.andThen (\id -> List.find (.id >> (==) id) videos)
+
+
+getCurrentSubtitle : Model -> Maybe Subtitle
+getCurrentSubtitle model =
+    let
+        timeTolerance =
+            1.5
+    in
+    getVideo model.videoId model.videos
+        |> Maybe.map .subtitles
+        |> Maybe.withDefault []
+        |> List.find (\subtitle -> model.videoTime < subtitle.time + timeTolerance)
 
 
 fetchVideo : String -> Cmd Msg
@@ -276,7 +291,14 @@ update msg model =
                     ( { model
                         | recordings =
                             model.recordings
-                                ++ [ { videoId = videoId, time = model.videoTime } ]
+                                ++ [ { videoId = videoId
+                                     , time = model.videoTime
+                                     , text =
+                                        getCurrentSubtitle model
+                                            |> Maybe.map .text
+                                            |> Maybe.withDefault ""
+                                     }
+                                   ]
                       }
                     , Cmd.none
                     )
