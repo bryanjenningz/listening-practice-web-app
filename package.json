@@ -3,10 +3,12 @@
   "license": "MIT",
   "scripts": {
     "dev": "elm-watch hot",
-    "server": "npx http-server"
+    "server": "npx http-server",
+    "test": "npx elm-test"
   },
   "devDependencies": {
     "elm": "^0.19.1-5",
+    "elm-test": "^0.19.1-revision10",
     "elm-watch": "^1.0.2",
     "http-server": "^14.1.1"
   }
