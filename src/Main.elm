@@ -297,6 +297,12 @@ viewListenTab model =
                             ++ formatTime video.duration
                         )
                     ]
+                , case getSubtitleAt model.videoTime video.subtitles of
+                    Nothing ->
+                        Html.text ""
+
+                    Just subtitle ->
+                        Html.div [] [ Html.text subtitle.text ]
                 , Html.div [ class "flex gap-2" ]
                     [ Html.button
                         [ onClick FastRewind
