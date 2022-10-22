@@ -494,7 +494,7 @@ ${variant}`;
   var VERSION = "1.0.2";
   var TARGET_NAME = "My target name";
   var INITIAL_ELM_COMPILED_TIMESTAMP = Number(
-    "1666474668279"
+    "1666482524845"
   );
   var ORIGINAL_COMPILATION_MODE = "standard";
   var WEBSOCKET_PORT = "38745";
@@ -10174,6 +10174,7 @@ var $elm$core$List$isEmpty = function (xs) {
 		return false;
 	}
 };
+var $elm$html$Html$p = _VirtualDom_node('p');
 var $author$project$Main$viewReviewTab = function (model) {
 	return $elm$core$List$isEmpty(model.recordings) ? A2(
 		$elm$html$Html$div,
@@ -10183,7 +10184,23 @@ var $author$project$Main$viewReviewTab = function (model) {
 			]),
 		_List_fromArray(
 			[
-				$elm$html$Html$text('No recordings saved yet')
+				A2(
+				$elm$html$Html$p,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('mb-5')
+					]),
+				_List_fromArray(
+					[
+						$elm$html$Html$text('No recordings saved yet.')
+					])),
+				A2(
+				$elm$html$Html$p,
+				_List_Nil,
+				_List_fromArray(
+					[
+						$elm$html$Html$text('Click the "Save" button in the "Listen" tab to save a recording.')
+					]))
 			])) : A2(
 		$elm$html$Html$div,
 		_List_fromArray(
