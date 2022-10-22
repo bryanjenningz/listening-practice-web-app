@@ -12,7 +12,7 @@ import Video exposing (Subtitle, Video, VideoId, VideoTime, decodeVideo, getNext
 
 backendUrlRoot : String
 backendUrlRoot =
-    "http://127.0.0.1:8080/static/"
+    "https://raw.githubusercontent.com/bryanjenningz/listening-practice-web-app/main/static/"
 
 
 type alias TabData =
