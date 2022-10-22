@@ -94,8 +94,9 @@ fetchVideo videoId =
 
 videoIds : List String
 videoIds =
-    [ "rg3JqmUmzlE"
-    , "CjARsd_4amM"
+    [ "bmgZsgcPd_8"
+    , "gx874_psuUk"
+    , "RUkjrZZolSo"
     ]
 
 
