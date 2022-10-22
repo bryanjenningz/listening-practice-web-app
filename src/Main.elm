@@ -251,7 +251,11 @@ update msg model =
                         | videos =
                             (model.videos ++ [ video ])
                                 |> List.unique
-                                |> List.sortBy .id
+                                |> List.sortBy
+                                    (\v ->
+                                        List.findIndex ((==) v.id) videoIds
+                                            |> Maybe.withDefault -1
+                                    )
                       }
                     , Cmd.none
                     )
