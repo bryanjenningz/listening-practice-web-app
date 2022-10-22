@@ -494,7 +494,7 @@ ${variant}`;
   var VERSION = "1.0.2";
   var TARGET_NAME = "My target name";
   var INITIAL_ELM_COMPILED_TIMESTAMP = Number(
-    "1666425015429"
+    "1666474668279"
   );
   var ORIGINAL_COMPILATION_MODE = "standard";
   var WEBSOCKET_PORT = "38745";
@@ -9209,6 +9209,68 @@ var $author$project$Main$getVideo = F2(
 			},
 			videoId);
 	});
+var $author$project$Main$NoOp = {$: 'NoOp'};
+var $elm$core$Basics$composeL = F3(
+	function (g, f, x) {
+		return g(
+			f(x));
+	});
+var $elm$core$Task$onError = _Scheduler_onError;
+var $elm$core$Task$attempt = F2(
+	function (resultToMessage, task) {
+		return $elm$core$Task$command(
+			$elm$core$Task$Perform(
+				A2(
+					$elm$core$Task$onError,
+					A2(
+						$elm$core$Basics$composeL,
+						A2($elm$core$Basics$composeL, $elm$core$Task$succeed, resultToMessage),
+						$elm$core$Result$Err),
+					A2(
+						$elm$core$Task$andThen,
+						A2(
+							$elm$core$Basics$composeL,
+							A2($elm$core$Basics$composeL, $elm$core$Task$succeed, resultToMessage),
+							$elm$core$Result$Ok),
+						task))));
+	});
+var $elm$browser$Browser$Dom$getElement = _Browser_getElement;
+var $elm$browser$Browser$Dom$getViewportOf = _Browser_getViewportOf;
+var $elm$browser$Browser$Dom$setViewportOf = _Browser_setViewportOf;
+var $elm$core$String$fromFloat = _String_fromNumber;
+var $author$project$Main$subtitleId = function (subtitle) {
+	return 'sub' + $elm$core$String$fromFloat(subtitle.time);
+};
+var $author$project$Main$subtitlesContainerId = 'subtitles-container';
+var $author$project$Main$jumpToSubtitle = function (subtitle) {
+	var padding = 500;
+	return A2(
+		$elm$core$Task$attempt,
+		function (_v3) {
+			return $author$project$Main$NoOp;
+		},
+		A2(
+			$elm$core$Task$andThen,
+			function (_v2) {
+				var viewport = _v2.a;
+				var element = _v2.b;
+				return A3($elm$browser$Browser$Dom$setViewportOf, $author$project$Main$subtitlesContainerId, 0, (viewport.y + element.y) - padding);
+			},
+			A2(
+				$elm$core$Task$andThen,
+				function (_v0) {
+					var viewport = _v0.viewport;
+					return A2(
+						$elm$core$Task$map,
+						function (_v1) {
+							var element = _v1.element;
+							return _Utils_Tuple2(viewport, element);
+						},
+						$elm$browser$Browser$Dom$getElement(
+							$author$project$Main$subtitleId(subtitle)));
+				},
+				$elm$browser$Browser$Dom$getViewportOf($author$project$Main$subtitlesContainerId))));
+};
 var $author$project$Main$listenTabId = 1;
 var $elm$json$Json$Encode$string = _Json_wrap;
 var $author$project$Main$loadVideo = _Platform_outgoingPort('loadVideo', $elm$json$Json$Encode$string);
@@ -9389,6 +9451,8 @@ var $elm_community$list_extra$List$Extra$unique = function (list) {
 var $author$project$Main$update = F2(
 	function (msg, model) {
 		switch (msg.$) {
+			case 'NoOp':
+				return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 			case 'TabClicked':
 				var tabId = msg.a;
 				return _Utils_Tuple2(
@@ -9534,7 +9598,7 @@ var $author$project$Main$update = F2(
 							videoTime: 0
 						}),
 					$author$project$Main$loadVideo(videoId));
-			default:
+			case 'GotVideo':
 				var response = msg.a;
 				if (response.$ === 'Err') {
 					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
@@ -9563,6 +9627,11 @@ var $author$project$Main$update = F2(
 							}),
 						$elm$core$Platform$Cmd$none);
 				}
+			default:
+				var subtitle = msg.a;
+				return _Utils_Tuple2(
+					model,
+					$author$project$Main$jumpToSubtitle(subtitle));
 		}
 	});
 var $elm$json$Json$Decode$value = _Json_decodeValue;
@@ -9760,6 +9829,9 @@ var $author$project$Main$viewFindTab = function (model) {
 };
 var $author$project$Main$FastForward = {$: 'FastForward'};
 var $author$project$Main$FastRewind = {$: 'FastRewind'};
+var $author$project$Main$JumpToSubtitle = function (a) {
+	return {$: 'JumpToSubtitle', a: a};
+};
 var $author$project$Main$SaveRecording = {$: 'SaveRecording'};
 var $author$project$Main$SetVideoTime = function (a) {
 	return {$: 'SetVideoTime', a: a};
@@ -9846,7 +9918,7 @@ var $author$project$Main$formatTime = function (totalSeconds) {
 			_List_fromArray(
 				[hours, minutes, seconds])));
 };
-var $elm$core$String$fromFloat = _String_fromNumber;
+var $elm$html$Html$Attributes$id = $elm$html$Html$Attributes$stringProperty('id');
 var $elm$html$Html$input = _VirtualDom_node('input');
 var $elm$html$Html$Attributes$max = $elm$html$Html$Attributes$stringProperty('max');
 var $elm$html$Html$Attributes$min = $elm$html$Html$Attributes$stringProperty('min');
@@ -9985,8 +10057,12 @@ var $author$project$Main$viewListenTab = function (model) {
 							$author$project$Main$formatTime(model.videoTime) + (' / ' + $author$project$Main$formatTime(video.duration)))
 						])),
 					A2(
-					$elm$html$Html$div,
-					_List_Nil,
+					$elm$html$Html$button,
+					_List_fromArray(
+						[
+							$elm$html$Html$Events$onClick(
+							$author$project$Main$JumpToSubtitle(currentSubtitle))
+						]),
 					_List_fromArray(
 						[
 							$elm$html$Html$text(currentSubtitle.text)
@@ -10050,6 +10126,7 @@ var $author$project$Main$viewListenTab = function (model) {
 					$elm$html$Html$div,
 					_List_fromArray(
 						[
+							$elm$html$Html$Attributes$id($author$project$Main$subtitlesContainerId),
 							$elm$html$Html$Attributes$class('overflow-y-scroll h-1/2 md:h-3/5')
 						]),
 					A2(
@@ -10068,7 +10145,9 @@ var $author$project$Main$viewListenTab = function (model) {
 												_Utils_eq(subtitle, currentSubtitle))
 											])),
 										$elm$html$Html$Events$onClick(
-										$author$project$Main$SetVideoTime(subtitle.time))
+										$author$project$Main$SetVideoTime(subtitle.time)),
+										$elm$html$Html$Attributes$id(
+										$author$project$Main$subtitleId(subtitle))
 									]),
 								_List_fromArray(
 									[
