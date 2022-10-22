@@ -428,7 +428,11 @@ labeledSymbol label symbol =
 viewReviewTab : Model -> Html Msg
 viewReviewTab model =
     if List.isEmpty model.recordings then
-        Html.div [ class "text-center text-xl" ] [ Html.text "No recordings saved yet" ]
+        Html.div [ class "text-center text-xl" ]
+            [ Html.p [ class "mb-5" ] [ Html.text "No recordings saved yet." ]
+            , Html.p []
+                [ Html.text """Click the "Save" button in the "Listen" tab to save a recording.""" ]
+            ]
 
     else
         Html.div [ class "grid gap-4 w-full md:w-3/4 lg:w-1/2 mx-auto" ]
