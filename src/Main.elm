@@ -1,12 +1,14 @@
 port module Main exposing (main)
 
 import Browser
+import Browser.Dom as Dom
 import Html exposing (Attribute, Html)
 import Html.Attributes as Attr exposing (attribute, class, classList)
 import Html.Events exposing (onClick, onInput)
 import Http
 import Json.Decode as Json
 import List.Extra as List
+import Task
 import Video exposing (Subtitle, Video, VideoId, VideoTime, decodeVideo, getNextSubtitle, getPrevSubtitle, getSubtitleAt)
 
 
@@ -118,7 +120,8 @@ init recordingsJson =
 
 
 type Msg
-    = TabClicked TabId
+    = NoOp
+    | TabClicked TabId
     | ListenToVideo VideoId
     | PlayVideo
     | PauseVideo
@@ -131,11 +134,15 @@ type Msg
     | DeleteRecording Recording
     | LoadVideo VideoId
     | GotVideo (Result Http.Error Video)
+    | JumpToSubtitle Subtitle
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        NoOp ->
+            ( model, Cmd.none )
+
         TabClicked tabId ->
             ( { model | tabId = tabId }, Cmd.none )
 
@@ -260,6 +267,9 @@ update msg model =
                     , Cmd.none
                     )
 
+        JumpToSubtitle subtitle ->
+            ( model, jumpToSubtitle subtitle )
+
 
 view : Model -> Html Msg
 view model =
@@ -337,7 +347,8 @@ viewListenTab model =
                             ++ formatTime video.duration
                         )
                     ]
-                , Html.div [] [ Html.text currentSubtitle.text ]
+                , Html.button [ onClick (JumpToSubtitle currentSubtitle) ]
+                    [ Html.text currentSubtitle.text ]
                 , Html.div [ class "flex gap-2" ]
                     [ Html.button
                         [ onClick FastRewind
@@ -358,7 +369,7 @@ viewListenTab model =
                         ]
                         [ Html.text "Save" ]
                     ]
-                , Html.div [ class "overflow-y-scroll h-1/2 md:h-3/5" ]
+                , Html.div [ Attr.id subtitlesContainerId, class "overflow-y-scroll h-1/2 md:h-3/5" ]
                     (video.subtitles
                         |> List.map
                             (\subtitle ->
@@ -367,11 +378,43 @@ viewListenTab model =
                                     , classList
                                         [ ( "text-cyan-300", subtitle == currentSubtitle ) ]
                                     , onClick (SetVideoTime subtitle.time)
+                                    , Attr.id (subtitleId subtitle)
                                     ]
                                     [ Html.text subtitle.text ]
                             )
                     )
                 ]
+
+
+subtitlesContainerId : String
+subtitlesContainerId =
+    "subtitles-container"
+
+
+subtitleId : Subtitle -> String
+subtitleId subtitle =
+    "sub" ++ String.fromFloat subtitle.time
+
+
+jumpToSubtitle : Subtitle -> Cmd Msg
+jumpToSubtitle subtitle =
+    let
+        padding =
+            500
+    in
+    Dom.getViewportOf subtitlesContainerId
+        |> Task.andThen
+            (\{ viewport } ->
+                Dom.getElement (subtitleId subtitle)
+                    |> Task.map (\{ element } -> ( viewport, element ))
+            )
+        |> Task.andThen
+            (\( viewport, element ) ->
+                Dom.setViewportOf subtitlesContainerId
+                    0
+                    (viewport.y + element.y - padding)
+            )
+        |> Task.attempt (\_ -> NoOp)
 
 
 labeledSymbol : String -> String -> Html msg
