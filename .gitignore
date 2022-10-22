@@ -2,7 +2,7 @@
 elm-stuff
 # elm-repl generated files
 repl-temp-*
-# elm-watch output file
-build/main.js
+# npm run build and elm-watch files
+build/
 # npm install files
 node_modules
