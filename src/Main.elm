@@ -7,7 +7,7 @@ import Html.Events exposing (onClick, onInput)
 import Http
 import Json.Decode as Json
 import List.Extra as List
-import Video exposing (Subtitle, Video, VideoId, VideoTime, decodeVideo, getSubtitleAt)
+import Video exposing (Subtitle, Video, VideoId, VideoTime, decodeVideo, getNextSubtitle, getPrevSubtitle, getSubtitleAt)
 
 
 backendUrlRoot : String
@@ -158,10 +158,36 @@ update msg model =
             ( { model | videoIsPlaying = False }, pauseVideo () )
 
         FastForward ->
-            ( model, fastForward () )
+            let
+                maybeNextSubtitleTime : Maybe VideoTime
+                maybeNextSubtitleTime =
+                    getVideo model.videoId model.videos
+                        |> Maybe.map .subtitles
+                        |> Maybe.andThen (getNextSubtitle model.videoTime)
+                        |> Maybe.map .time
+            in
+            case maybeNextSubtitleTime of
+                Nothing ->
+                    ( model, Cmd.none )
+
+                Just videoTime ->
+                    ( model, setVideoTime videoTime )
 
         FastRewind ->
-            ( model, fastRewind () )
+            let
+                maybePrevSubtitleTime : Maybe VideoTime
+                maybePrevSubtitleTime =
+                    getVideo model.videoId model.videos
+                        |> Maybe.map .subtitles
+                        |> Maybe.andThen (getPrevSubtitle model.videoTime)
+                        |> Maybe.map .time
+            in
+            case maybePrevSubtitleTime of
+                Nothing ->
+                    ( model, Cmd.none )
+
+                Just videoTime ->
+                    ( model, setVideoTime videoTime )
 
         GetVideoTime videoTime ->
             ( { model | videoTime = videoTime }, Cmd.none )
@@ -457,12 +483,6 @@ port playVideo : () -> Cmd msg
 
 
 port pauseVideo : () -> Cmd msg
-
-
-port fastForward : () -> Cmd msg
-
-
-port fastRewind : () -> Cmd msg
 
 
 port getVideoTime : (Float -> msg) -> Sub msg

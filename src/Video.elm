@@ -1,4 +1,4 @@
-module Video exposing (Subtitle, Video, VideoId, VideoTime, decodeVideo, getSubtitleAt)
+module Video exposing (Subtitle, Video, VideoId, VideoTime, decodeVideo, getNextSubtitle, getPrevSubtitle, getSubtitleAt)
 
 import Dict
 import Json.Decode as Json
@@ -32,6 +32,25 @@ type alias Subtitle =
 getSubtitleAt : VideoTime -> List Subtitle -> Maybe Subtitle
 getSubtitleAt videoTime subtitles =
     case List.filter (\sub -> videoTime >= sub.time) subtitles |> List.last of
+        Nothing ->
+            List.head subtitles
+
+        subtitle ->
+            subtitle
+
+
+getNextSubtitle : VideoTime -> List Subtitle -> Maybe Subtitle
+getNextSubtitle videoTime subtitles =
+    List.find (\sub -> videoTime < sub.time) subtitles
+
+
+getPrevSubtitle : VideoTime -> List Subtitle -> Maybe Subtitle
+getPrevSubtitle videoTime subtitles =
+    let
+        timeTolerance =
+            0.8
+    in
+    case List.filter (\sub -> videoTime >= sub.time + timeTolerance) subtitles |> List.last of
         Nothing ->
             List.head subtitles
 

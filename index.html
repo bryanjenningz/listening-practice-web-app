@@ -28,8 +28,6 @@
       app.ports.startVideo.subscribe(startVideo);
       app.ports.playVideo.subscribe(playVideo);
       app.ports.pauseVideo.subscribe(pauseVideo);
-      app.ports.fastForward.subscribe(fastForward);
-      app.ports.fastRewind.subscribe(fastRewind);
       app.ports.setVideoTime.subscribe(setVideoTime);
       app.ports.playRecording.subscribe(playRecording);
       app.ports.loadVideo.subscribe(loadVideo);
@@ -56,26 +54,6 @@
         isPlaying = false;
         clearInterval(intervalId);
         intervalId = null;
-      }
-
-      function fastForward() {
-        if (!player) return;
-        const newPlayerTime = Math.min(
-          player.getDuration() || 0,
-          (player.getCurrentTime() || 0) + SKIP_TIME
-        );
-        player.seekTo(newPlayerTime);
-        app.ports.getVideoTime.send(newPlayerTime);
-      }
-
-      function fastRewind() {
-        if (!player) return;
-        const newPlayerTime = Math.max(
-          0,
-          (player.getCurrentTime() || 0) - SKIP_TIME
-        );
-        player.seekTo(newPlayerTime);
-        app.ports.getVideoTime.send(newPlayerTime);
       }
 
       function getVideoTime() {
