@@ -1,6 +1,6 @@
-# Mandarin Listening Web App
+# Listening Practice Web App
 
-A fun web app that improves your Mandarin listening ability.
+A simple web app that improves your listening ability.
 
 ## How to run
 
