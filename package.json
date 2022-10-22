@@ -1,6 +1,9 @@
 {
+  "homepage": "https://bryanjenningz.github.io/listening-practice-web-app",
   "scripts": {
     "build": "elm make src/Main.elm --optimize --output=build/main.js; uglifyjs build/main.js --compress 'pure_funcs=[F2,F3,F4,F5,F6,F7,F8,F9,A2,A3,A4,A5,A6,A7,A8,A9],pure_getters,keep_fargs=false,unsafe_comps,unsafe' | uglifyjs --mangle --output build/main.js",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build",
     "dev": "elm-watch hot",
     "dev-server": "http-server",
     "test": "elm-test"
@@ -9,6 +12,7 @@
     "elm": "^0.19.1-5",
     "elm-test": "^0.19.1-revision10",
     "elm-watch": "^1.0.2",
+    "gh-pages": "^4.0.0",
     "http-server": "^14.1.1",
     "uglify-js": "^3.17.3"
   }
